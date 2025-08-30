@@ -4,11 +4,11 @@
   background-color: #000080; /* Navy */
 }
 
-.gold {
-  color: #FFD700; /* Accent (gold) for headings */
+.primary-color {
+  background-color: #212842; /* Accent (gold) for headings */
 }
 
-.light-gray {
-  color: #E0E0E0; /* Light gray for secondary text */
+.bg-color {
+  color: #F0E7D5; /* Light gray for secondary text */
 }
 
