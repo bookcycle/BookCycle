@@ -1,1 +1,14 @@
 @import "tailwindcss";
+
+.navy-blue {
+  background-color: #000080; /* Navy */
+}
+
+.gold {
+  color: #FFD700; /* Accent (gold) for headings */
+}
+
+.light-gray {
+  color: #E0E0E0; /* Light gray for secondary text */
+}
+
