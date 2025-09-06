@@ -1,9 +1,20 @@
 import React, { useState } from "react";
+import { useDispatch } from "react-redux";
+import { setCredentials } from "../../features/auth/authSlice";
+import { api } from "../../lib/api"
 import { ArrowLeft, Eye, EyeOff } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { FaArrowLeft } from "react-icons/fa";
 
 const LoginPage = () => {
+
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // optional: support redirect query (?redirect=/somewhere)
+  const redirectTo =
+    new URLSearchParams(location.search).get("redirect") || "/profile";
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -25,14 +36,31 @@ const LoginPage = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (isLoading) return; // prevent double submit
     setIsLoading(true);
-    setTimeout(() => {
+    try {
+      const payload = {
+        email: formData.email.trim(),
+        password: formData.password,
+      };
+
+      const { user, token } = await api("/auth/login", {
+        method: "POST",
+        body: payload,
+      });
+
+      localStorage.setItem("ptb_token", token);
+      dispatch(setCredentials({ user, token }));
+      alert(`Welcome, ${user.email}!`);
+      navigate(redirectTo, { replace: true });
+    } catch (err) {
+      alert(err.message || "Login failed");
+    }
+    finally {
       setIsLoading(false);
-      alert("Login successful!");
-    }, 800);
+    }
   };
 
   return (
