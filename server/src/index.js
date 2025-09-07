@@ -5,6 +5,7 @@ import { connectDB } from "./config/db.js";
 import { config } from "./config/env.js";
 import authRoutes from "./routes/auth.routes.js";
 import { notFound, errorHandler } from "./middlewares/error.js";
+import aiRoutes from "./routes/ai.routes.js";
 
 const app = express();
 
@@ -24,6 +25,9 @@ app.use(cors(corsOptions));
 app.get("/", (req, res) => res.send("API is working"));
 
 app.use("/api/auth", authRoutes);
+
+app.use("/api/ai", aiRoutes);
+
 
 //error middleware
 app.use(notFound);

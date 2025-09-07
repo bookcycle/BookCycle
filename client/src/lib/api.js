@@ -1,15 +1,13 @@
 import axios from "axios";
 
-
 const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
 // Create axios instance (shared config)
 const http = axios.create({
   baseURL: API_BASE,
-  withCredentials: true,   // allow cookies if needed
-  timeout: 15000,          // 15s timeout
+  withCredentials: true, // allow cookies if needed
+  timeout: 15000, // 15s timeout
 });
-
 
 http.interceptors.request.use((config) => {
   const token = localStorage.getItem("ptb_token");
@@ -17,21 +15,19 @@ http.interceptors.request.use((config) => {
   return config;
 });
 
-
 async function request(method, url, { data, params, headers } = {}) {
   try {
     const res = await http.request({ method, url, data, params, headers });
     return res.data;
   } catch (err) {
-    const message = err?.response?.data?.error || err?.message || "Request failed";
+    const message =
+      err?.response?.data?.error || err?.message || "Request failed";
     if (import.meta.env.DEV) {
-
       console.error(`[API ${method}] ${url}:`, err?.response || err);
     }
     throw new Error(message);
   }
 }
-
 
 export const api = {
   get: (url, config) => request("GET", url, config),
@@ -39,6 +35,6 @@ export const api = {
   put: (url, data, config) => request("PUT", url, { ...config, data }),
   patch: (url, data, config) => request("PATCH", url, { ...config, data }),
   delete: (url, config) => request("DELETE", url, config),
-  _http: http, 
-}
+  _http: http,
+};
 export default api;
