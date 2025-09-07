@@ -1,5 +1,6 @@
 import { verifyAuthToken } from "../services/token.service.js";
 
+
 export async function requireAuth(req, res, next) {
   
   const auth = req.get('authorization'); 
@@ -17,6 +18,7 @@ export async function requireAuth(req, res, next) {
   try {
     const payload = await verifyAuthToken(token); /*verifyAuthToken() is service func */
 
+    //req user
     req.user = { id: payload.sub ?? payload.id, email: payload.email };
     return next();
   } catch (err) {
