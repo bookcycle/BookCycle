@@ -1,20 +1,44 @@
 import axios from "axios";
 
-//all api call will be start from this base url
+
 const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
-export async function api(path, { method = "GET", body, token } = {}) {
-  try {
-    const res = await axios({
-      url: `${API_BASE}${path}`,
-      method,
-      data: body, //JSON format by default
-      headers: token ? { Authorization: `Bearer ${token}` } : {},
-      withCredentials: true, // cookie 
-    });
+// Create axios instance (shared config)
+const http = axios.create({
+  baseURL: API_BASE,
+  withCredentials: true,   // allow cookies if needed
+  timeout: 15000,          // 15s timeout
+});
 
+
+http.interceptors.request.use((config) => {
+  const token = localStorage.getItem("ptb_token");
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
+});
+
+
+async function request(method, url, { data, params, headers } = {}) {
+  try {
+    const res = await http.request({ method, url, data, params, headers });
     return res.data;
   } catch (err) {
-    throw new Error(err.response?.data?.error || "Request failed");
+    const message = err?.response?.data?.error || err?.message || "Request failed";
+    if (import.meta.env.DEV) {
+
+      console.error(`[API ${method}] ${url}:`, err?.response || err);
+    }
+    throw new Error(message);
   }
 }
+
+
+export const api = {
+  get: (url, config) => request("GET", url, config),
+  post: (url, data, config) => request("POST", url, { ...config, data }),
+  put: (url, data, config) => request("PUT", url, { ...config, data }),
+  patch: (url, data, config) => request("PATCH", url, { ...config, data }),
+  delete: (url, config) => request("DELETE", url, config),
+  _http: http, 
+}
+export default api;
