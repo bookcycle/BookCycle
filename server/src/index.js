@@ -1,3 +1,4 @@
+import http from "http";
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
@@ -6,35 +7,44 @@ import { config } from "./config/env.js";
 import authRoutes from "./routes/auth.routes.js";
 import { notFound, errorHandler } from "./middlewares/error.js";
 import aiRoutes from "./routes/ai.routes.js";
+import chatRoutes from "./routes/chat.routes.js";
+import { setupSocket } from "./realtime/socket.js";
 
 const app = express();
 
-//middleware setup
+// ---------- Middlewares ----------
 app.use(helmet());
 app.use(express.json());
 
-// CORS
-const corsOptions = {
-  origin: "http://localhost:5173",
-  credentials: true,  //allow cookie/authorization
-  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-};
-app.use(cors(corsOptions));
+// CORS (client 5173)
+app.use(
+  cors({
+    origin: process.env.CLIENT_URL, // .env: CLIENT_URL=http://localhost:5173
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
 
+// ---------- Health (debug) ----------
+app.get("/api/health", (req, res) => res.json({ ok: true }));
+
+// ---------- Routes ----------
 app.get("/", (req, res) => res.send("API is working"));
-
 app.use("/api/auth", authRoutes);
-
 app.use("/api/ai", aiRoutes);
+app.use("/api", chatRoutes);
 
-
-//error middleware
+// ---------- Errors ----------
 app.use(notFound);
 app.use(errorHandler);
 
-await connectDB();
+// ---------- Create HTTP server & attach Socket.IO ----------
+const server = http.createServer(app);
+setupSocket(server); // <<<<<<<<<<<<<<<<<<<<<< attach socket.io to *server*, not app
 
-app.listen(config.port, () => {
-  console.log(`Server running at http://localhost:${config.port}`);
+// ---------- Start ----------
+await connectDB();
+server.listen(config.port, () => {
+  console.log(`🚀 Server running at http://localhost:${config.port}`);
 });
