@@ -151,6 +151,7 @@ export default function SettingsPage() {
                 Cancel
               </button>
               <button
+              //if i give submit, onSubmit func of Form triggers
                 type="submit"
                 disabled={saving}
                 className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#1F2421] text-[#F7F5F2] hover:bg-[#1F2421]/90 disabled:opacity-60"

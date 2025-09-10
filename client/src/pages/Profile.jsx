@@ -12,6 +12,7 @@ export default function ProfilePage() {
 
   const savedToken = useMemo(
     () => token || localStorage.getItem("ptb_token"),
+    //if token changes only then useMemo() hook will update; otherwise stays same
     [token]
   );
 
@@ -35,6 +36,7 @@ export default function ProfilePage() {
       try {
         const data = await api.get("/auth/me");
         if (ignore) return;
+        //.? is optional chaining operator
         const user = data?.user;
         if (!user) throw new Error("No user data returned");
         dispatch(setCredentials({ user, token: savedToken }));
