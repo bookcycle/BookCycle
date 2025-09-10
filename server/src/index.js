@@ -9,6 +9,7 @@ import { notFound, errorHandler } from "./middlewares/error.js";
 import aiRoutes from "./routes/ai.routes.js";
 import chatRoutes from "./routes/chat.routes.js";
 import { setupSocket } from "./realtime/socket.js";
+import bookRoutes from "./routes/book.routes.js";
 
 const app = express();
 
@@ -34,6 +35,7 @@ app.get("/", (req, res) => res.send("API is working"));
 app.use("/api/auth", authRoutes);
 app.use("/api/ai", aiRoutes);
 app.use("/api", chatRoutes);
+app.use("/api/books", bookRoutes);
 
 // ---------- Errors ----------
 app.use(notFound);

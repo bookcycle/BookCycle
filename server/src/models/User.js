@@ -4,9 +4,19 @@ import bcrypt from "bcryptjs"; //or bcrypt
 const userSchema = mongoose.Schema({
     firstName: {type: String, required: true, trim: true},
     lastName: {type: String, required: true, trim: true},
-    email: {type:String, required: true, unique: true, lowercase: true, index: true, match: /.+\@.+\..+/},
+        email: {
+      type: String,
+      required: true,
+      unique: true,
+      lowercase: true,
+      index: true,
+      match: /.+\@.+\..+/,
+    },
     password: {type:String, required: true, minlength: 8},
-})
+ role: { type: String, enum: ["user", "admin"], default: "user" },
+  },
+  { timestamps: true }
+);
 
 
 //this func shall be run just before User document is saved
