@@ -25,3 +25,11 @@ export async function requireAuth(req, res, next) {
     return res.status(401).json({ error: 'Invalid or expired token' });
   }
 }
+
+
+export function requireAdmin(req, _res, next) {
+  if (req.user?.role === "admin") return next();
+  const err = new Error("Admin only");
+  err.status = 403;
+  next(err);
+}
