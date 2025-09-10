@@ -2,7 +2,7 @@ import axios from "axios";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
-// Create axios instance (shared config)
+// Create axios instance
 const http = axios.create({
   baseURL: API_BASE,
   withCredentials: true, // allow cookies if needed
@@ -11,6 +11,8 @@ const http = axios.create({
 
 http.interceptors.request.use((config) => {
   const token = localStorage.getItem("ptb_token");
+  
+  //add bearer
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
@@ -29,6 +31,8 @@ async function request(method, url, { data, params, headers } = {}) {
   }
 }
 
+
+//we pass headers through config; if not passed, it'll be undefined
 export const api = {
   get: (url, config) => request("GET", url, config),
   post: (url, data, config) => request("POST", url, { ...config, data }),
