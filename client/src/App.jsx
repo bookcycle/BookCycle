@@ -6,6 +6,7 @@ import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
 import Login from "./pages/auth/Login";
 import Signup from "./pages/auth/Signup";
+import ChatPage from "./pages/Chat";
 
 function App() {
   return (
@@ -23,6 +24,7 @@ function App() {
             <Route path="/settings" element={<Settings />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
+            <Route path="/chat" element={<ChatPage />} />
           </Routes>
         </main>
       </div>
