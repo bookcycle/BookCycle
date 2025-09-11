@@ -1,14 +1,32 @@
-import { NavLink, Outlet } from "react-router-dom";
-import { useSelector } from "react-redux";
-import { LayoutDashboard, BookOpen, XCircle, User, Bell, Search } from "lucide-react";
+import { NavLink, Outlet, useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { LayoutDashboard, BookOpen, XCircle, User, LogOut } from "lucide-react";
+import { logout } from "../features/auth/authSlice";
 
 const linkBase =
     "flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 group relative overflow-hidden";
-const linkActive = "bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-lg transform scale-105";
-const linkIdle = "text-slate-400 hover:text-white hover:bg-slate-700/50 hover:transform hover:scale-102";
+const linkActive =
+    "bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-lg transform scale-105";
+const linkIdle =
+    "text-slate-400 hover:text-white hover:bg-slate-700/50 hover:transform hover:scale-102";
 
 export default function AdminLayout() {
     const { user } = useSelector((s) => s.auth);
+    const dispatch = useDispatch();
+    const navigate = useNavigate();
+
+    const handleLogout = () => {
+        try {
+            localStorage.removeItem("ptb_token");
+
+            dispatch(logout());
+
+
+            navigate("/login?redirect=/admin", { replace: true });
+        } catch {
+            navigate("/login", { replace: true });
+        }
+    };
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
@@ -21,7 +39,7 @@ export default function AdminLayout() {
             {/* Shell: sidebar + content */}
             <div className="relative z-10 mx-auto max-w-[1600px] grid grid-cols-[280px_1fr] gap-6 p-6">
                 {/* Sidebar */}
-                <aside className="h-[calc(100vh-3rem)] sticky top-6 bg-slate-800/50 backdrop-blur-xl border border-slate-700/50 rounded-3xl p-6 shadow-2xl">
+                <aside className="h-[calc(100vh-3rem)] sticky top-6 bg-slate-800/50 backdrop-blur-xl border border-slate-700/50 rounded-3xl p-6 shadow-2xl flex flex-col">
                     {/* Logo */}
                     <div className="mb-8">
                         <div className="flex items-center gap-3 mb-2">
@@ -71,9 +89,7 @@ export default function AdminLayout() {
                         <NavLink
                             to="/admin"
                             end
-                            className={({ isActive }) =>
-                                `${linkBase} ${isActive ? linkActive : linkIdle}`
-                            }
+                            className={({ isActive }) => `${linkBase} ${isActive ? linkActive : linkIdle}`}
                         >
                             <LayoutDashboard size={20} className="flex-shrink-0" />
                             <span className="font-medium">Dashboard</span>
@@ -82,21 +98,16 @@ export default function AdminLayout() {
 
                         <NavLink
                             to="/admin/pending"
-                            className={({ isActive }) =>
-                                `${linkBase} ${isActive ? linkActive : linkIdle}`
-                            }
+                            className={({ isActive }) => `${linkBase} ${isActive ? linkActive : linkIdle}`}
                         >
                             <BookOpen size={20} className="flex-shrink-0" />
                             <span className="font-medium">Pending Reviews</span>
-                            {/* You can dynamically set this badge from your Redux store */}
                             <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/0 to-purple-600/0 group-hover:from-indigo-500/10 group-hover:to-purple-600/10 transition-all duration-300"></div>
                         </NavLink>
 
                         <NavLink
                             to="/admin/rejected"
-                            className={({ isActive }) =>
-                                `${linkBase} ${isActive ? linkActive : linkIdle}`
-                            }
+                            className={({ isActive }) => `${linkBase} ${isActive ? linkActive : linkIdle}`}
                         >
                             <XCircle size={20} className="flex-shrink-0" />
                             <span className="font-medium">Rejected Items</span>
@@ -104,12 +115,20 @@ export default function AdminLayout() {
                         </NavLink>
                     </nav>
 
-                    {/* Bottom tagline */}
-                    <div className="mt-auto pt-6 border-t border-slate-700/50">
+                    {/* Bottom actions */}
+                    <div className="mt-auto pt-6 border-t border-slate-700/50 space-y-3">
+                        <button
+                            onClick={handleLogout}
+                            className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-slate-700/60 hover:bg-slate-700 text-slate-100 border border-slate-600/60 transition-all"
+                        >
+                            <LogOut className="w-4 h-4" />
+                            <span className="font-medium">Logout</span>
+                        </button>
+
                         <div className="text-slate-500 text-xs text-center font-medium tracking-wide">
                             Connecting readers
                         </div>
-                        <div className="flex justify-center gap-1 mt-2">
+                        <div className="flex justify-center gap-1">
                             <div className="w-2 h-2 bg-indigo-500 rounded-full animate-pulse"></div>
                             <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse delay-300"></div>
                             <div className="w-2 h-2 bg-pink-500 rounded-full animate-pulse delay-700"></div>
@@ -119,8 +138,6 @@ export default function AdminLayout() {
 
                 {/* Content */}
                 <main className="flex flex-col min-h-[calc(100vh-3rem)]">
-
-                    {/* Page content - This is where your routed components will render */}
                     <div className="flex-1 bg-white/95 backdrop-blur-sm rounded-3xl shadow-2xl border border-slate-200/20 overflow-hidden">
                         <div className="p-8 h-full">
                             <Outlet />
