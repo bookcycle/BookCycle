@@ -1,3 +1,4 @@
+// client/src/pages/auth/Login.jsx
 import React, { useState } from "react";
 import { useDispatch } from "react-redux";
 import { setCredentials } from "../../features/auth/authSlice";
@@ -11,19 +12,15 @@ const LoginPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // optional: support redirect query (?redirect=/somewhere)
-  const redirectTo =
-    new URLSearchParams(location.search).get("redirect") || "/profile";
+  // If you came from a protected page, React Router appends ?redirect=/that/page
+  const redirectParam = new URLSearchParams(location.search).get("redirect");
 
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-  });
+  const [formData, setFormData] = useState({ email: "", password: "" });
 
   const handleGoogleSignin = () => {
-    if (isLoading) return; // prevent double click
+    if (isLoading) return;
     setIsLoading(true);
     setTimeout(() => {
       setIsLoading(false);
@@ -38,7 +35,7 @@ const LoginPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (isLoading) return; // prevent double submit
+    if (isLoading) return;
     setIsLoading(true);
 
     try {
@@ -47,20 +44,24 @@ const LoginPage = () => {
         password: formData.password,
       };
 
-      // use api helper; it returns the response body
+      // login
       const data = await api.post("/auth/login", payload);
       const user = data?.user;
       const token = data?.token;
+      if (!user || !token) throw new Error("Invalid server response");
 
-      if (!user || !token) {
-        throw new Error("Invalid server response");
-      }
-
+      // persist + store
       localStorage.setItem("ptb_token", token);
       dispatch(setCredentials({ user, token }));
-      navigate(redirectTo, { replace: true });
+
+      // ✅ Redirect logic
+      // 1) If ?redirect= exists, honor it (ex: /login?redirect=/admin)
+      // 2) Otherwise: admin -> /admin, normal user -> /profile
+      const fallback = user.role === "admin" ? "/admin" : "/profile";
+      const target = redirectParam || fallback;
+      navigate(target, { replace: true });
     } catch (err) {
-      alert(err.message || "Login failed");
+      alert(err?.response?.data?.error || err.message || "Login failed");
     } finally {
       setIsLoading(false);
     }

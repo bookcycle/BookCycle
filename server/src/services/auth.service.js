@@ -11,7 +11,7 @@ export async function registerUser({ firstName, lastName, email, password }) {
 
   const user = await User.create({ firstName, lastName, email, password }); //saving on db through User model
   const token = signAuthToken(user); //create token using Token service func
-return { user: sanitize(user), token };
+  return { user: sanitize(user), token };
 }
 
 export async function loginUser({ email, password }) {
@@ -38,7 +38,24 @@ export async function getUserById(id) {
 }
 
 function sanitize(user) {
-  const { _id, firstName, lastName, email, avatarUrl, createdAt, updatedAt } =
-    user.toObject();
-  return { _id, firstName, lastName, email, avatarUrl, createdAt, updatedAt };
+  const {
+    _id,
+    firstName,
+    lastName,
+    email,
+    avatarUrl,
+    role,
+    createdAt,
+    updatedAt,
+  } = user.toObject();
+  return {
+    _id,
+    firstName,
+    lastName,
+    email,
+    avatarUrl,
+    role,
+    createdAt,
+    updatedAt,
+  };
 }

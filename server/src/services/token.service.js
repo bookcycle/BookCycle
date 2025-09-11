@@ -5,7 +5,7 @@ import { config } from "../config/env.js";
 export function signAuthToken(user) {
   /*jwt.sign(payload, secret, options) */
   return jwt.sign(
-    { sub: user._id.toString(), email: user.email }, //payload
+    { sub: user._id.toString(), email: user.email, role: user.role }, //payload
     config.jwtSecret, //secret
     { expiresIn: "7d" } //option:
   );
