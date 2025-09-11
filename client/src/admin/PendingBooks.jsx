@@ -161,7 +161,6 @@ export default function PendingBooks() {
                     </button>
 
                     <div className="ml-auto flex items-center gap-2">
-                      {/* NOTE: colors changed from red/green to AMBER/VIOLET */}
                       <button
                         onClick={() => {
                           const ok = window.confirm(
@@ -196,7 +195,6 @@ export default function PendingBooks() {
                 </div>
               </div>
 
-              {/* Collapsible details */}
               {isOpen && (
                 <div className="border-t border-slate-200">
                   <div className="p-4 grid md:grid-cols-3 gap-4">
