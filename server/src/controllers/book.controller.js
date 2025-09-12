@@ -8,20 +8,21 @@ import {
   setAvailability,
 } from "../services/book.service.js";
 
-/** POST /books  (user) — create requested */
+/** POST /books  (user) — create pending */
 export async function createBookCtrl(req, res, next) {
   try {
+    // req.body may include: title, author, genre, type, condition, description, coverUrl
     const book = await createBook(req.user.id, req.body);
     res.status(201).json({ book });
   } catch (e) { next(e); }
 }
 
-/** GET /books  (public) — only accepted books */
+/** GET /books  (public) — only accepted books (with optional filters) */
 export async function listPublicBooksCtrl(req, res, next) {
   try {
-    const { q, type, availability, owner, page, limit } = req.query;
+    const { q, type, availability, owner, genre, page, limit } = req.query;
     const data = await listPublicBooks(
-      { q, type, availability, owner },
+      { q, type, availability, owner, genre },
       { page: parseInt(page || "1", 10), limit: parseInt(limit || "20", 10) }
     );
     res.json(data);
@@ -32,7 +33,6 @@ export async function listPublicBooksCtrl(req, res, next) {
 export async function getBookCtrl(req, res, next) {
   try {
     const book = await getBook(req.params.id);
-    // hide rejected/requested publicly?
     res.json({ book });
   } catch (e) { next(e); }
 }
@@ -42,7 +42,7 @@ export async function listPendingCtrl(req, res, next) {
   try {
     const { q, type, page, limit } = req.query;
     const data = await listByStatus(
-      "requested",
+      "pending", 
       { q, type },
       { page: parseInt(page || "1", 10), limit: parseInt(limit || "20", 10) }
     );
@@ -63,10 +63,14 @@ export async function listRejectedCtrl(req, res, next) {
   } catch (e) { next(e); }
 }
 
-/** PATCH /books/admin/:id/status (admin) — accepted|rejected */
+/** PATCH /books/admin/:id/status (admin) — pending|accepted|rejected */
 export async function setReviewStatusCtrl(req, res, next) {
   try {
     const { status } = req.body;
+    const allowed = new Set(["pending", "accepted", "rejected"]);
+    if (!allowed.has(status)) {
+      return res.status(400).json({ error: "Invalid status" });
+    }
     const book = await setReviewStatus(req.params.id, status);
     res.json({ book });
   } catch (e) { next(e); }
