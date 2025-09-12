@@ -11,6 +11,8 @@ import chatRoutes from "./routes/chat.routes.js";
 import { setupSocket } from "./realtime/socket.js";
 import bookRoutes from "./routes/book.routes.js";
 
+import uploadRoutes from "./routes/upload.routes.js";
+
 const app = express();
 
 // ---------- Middlewares ----------
@@ -20,7 +22,7 @@ app.use(express.json());
 // CORS (client 5173)
 app.use(
   cors({
-    origin: process.env.CLIENT_URL, // .env: CLIENT_URL=http://localhost:5173
+    origin: process.env.CLIENT_URL, 
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
@@ -36,6 +38,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/ai", aiRoutes);
 app.use("/api", chatRoutes);
 app.use("/api/books", bookRoutes);
+app.use("/api", uploadRoutes);
 
 // ---------- Errors ----------
 app.use(notFound);
