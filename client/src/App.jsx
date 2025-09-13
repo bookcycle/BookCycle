@@ -1,7 +1,5 @@
-// client/src/App.jsx
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 
-// General UI
 import Navbar from "./components/Navbar";
 import Home from "./pages/Home";
 import Explore from "./pages/Explore";
@@ -10,8 +8,7 @@ import Settings from "./pages/Settings";
 import Login from "./pages/auth/Login";
 import Signup from "./pages/auth/Signup";
 import ChatPage from "./pages/Chat";
-import BookDetails from "./pages/BookDetails"; // ✅ details page
-
+import BookDetails from "./pages/BookDetails"; 
 // Admin
 import AdminRoute from "./routes/AdminRoute";
 import AdminLayout from "./admin/AdminLayout";
