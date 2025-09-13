@@ -1,3 +1,4 @@
+// src/components/home/BookCarousel.jsx
 import React, { useEffect, useState } from "react";
 import { api } from "../../lib/api";
 import { useNavigate } from "react-router-dom";
@@ -16,23 +17,28 @@ export default function BookCarousel({ title = "New this week" }) {
   const navigate = useNavigate();
 
   useEffect(() => {
+    let mounted = true;
     (async () => {
       try {
         setLoading(true);
-        const data = await api.get("/books", { params: { page: 1, limit: 20 } });
-        setRows(Array.isArray(data?.docs) ? data.docs : []);
         setErr("");
+        // ✅ Public endpoint: always returns accepted books
+        const data = await api.get("/books", { params: { page: 1, limit: 20 } });
+        if (!mounted) return;
+        setRows(Array.isArray(data?.docs) ? data.docs : []);
       } catch (e) {
+        if (!mounted) return;
         setErr(e?.message || "Failed to load books");
       } finally {
-        setLoading(false);
+        if (mounted) setLoading(false);
       }
     })();
+    return () => { mounted = false; };
   }, []);
 
   return (
     <section className="relative">
-      {/* Title with a small emerald accent */}
+      {/* Title with emerald accent */}
       <div className="mb-3 flex items-center gap-2">
         <span className="inline-block h-2 w-2 rounded-full bg-emerald-600" />
         <h2 className="text-xl font-semibold tracking-tight text-slate-900">
@@ -40,7 +46,7 @@ export default function BookCarousel({ title = "New this week" }) {
         </h2>
       </div>
 
-      {/* THEMED BACKGROUND BOX */}
+      {/* Themed background box */}
       <div
         className="
           relative rounded-2xl border border-[#E8E4DC]
@@ -48,7 +54,7 @@ export default function BookCarousel({ title = "New this week" }) {
           p-3 sm:p-4 lg:p-5 shadow-sm
         "
       >
-        {/* soft background blobs (subtle) */}
+        {/* background blobs */}
         <div className="pointer-events-none absolute -top-6 -left-6 h-24 w-24 rounded-full bg-emerald-200/20 blur-3xl" />
         <div className="pointer-events-none absolute -bottom-8 -right-8 h-28 w-28 rounded-full bg-amber-200/20 blur-3xl" />
 
@@ -80,10 +86,8 @@ export default function BookCarousel({ title = "New this week" }) {
             className="!px-1"
           >
             {rows.map((b) => {
-              const availability = (b.availability || b.status || "")
-                .toString()
-                .toLowerCase();
-              const { label, className } = getAvailabilityMeta(availability);
+              const av = (b.availability || "").toLowerCase();
+              const { label, className } = getAvailabilityMeta(av);
 
               return (
                 <SwiperSlide key={b._id}>
@@ -108,12 +112,19 @@ export default function BookCarousel({ title = "New this week" }) {
                         )}
                       </div>
 
-                      {/* Availability badge inside photo */}
+                      {/* Availability badge */}
                       {label && (
                         <span
                           className={`absolute left-2 top-2 rounded-full px-2 py-0.5 text-[11px] font-medium ${className}`}
                         >
                           {label}
+                        </span>
+                      )}
+
+                      {/* Optional: show status */}
+                      {b.status === "accepted" && (
+                        <span className="absolute right-2 top-2 rounded-full bg-emerald-100 text-emerald-800 px-2 py-0.5 text-[10px] font-medium">
+                          Accepted
                         </span>
                       )}
                     </div>
@@ -136,19 +147,9 @@ export default function BookCarousel({ title = "New this week" }) {
 function getAvailabilityMeta(av) {
   switch (av) {
     case "available":
-    case "in stock":
-    case "open":
       return { label: "Available", className: "bg-emerald-600 text-white" };
-    case "requested":
-    case "reserved":
-      return { label: "Reserved", className: "bg-amber-500 text-white" };
-    case "borrowed":
     case "unavailable":
-    case "checked out":
-      return { label: "Borrowed", className: "bg-slate-500 text-white" };
-    case "pending":
-    case "review":
-      return { label: "Pending", className: "bg-blue-500 text-white" };
+      return { label: "Unavailable", className: "bg-slate-500 text-white" };
     default:
       return { label: "", className: "" };
   }

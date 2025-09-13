@@ -34,10 +34,11 @@ app.get("/api/health", (req, res) => res.json({ ok: true }));
 
 // ---------- Routes ----------
 app.get("/", (req, res) => res.send("API is working"));
+app.use("/api/books", bookRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/ai", aiRoutes);
 app.use("/api", chatRoutes);
-app.use("/api/books", bookRoutes);
+
 app.use("/api", uploadRoutes);
 
 // ---------- Errors ----------
