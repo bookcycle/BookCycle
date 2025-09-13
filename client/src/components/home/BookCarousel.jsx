@@ -48,10 +48,6 @@ export default function BookCarousel({ title = "Recommended" }) {
           p-3 sm:p-4 lg:p-5 shadow-sm
         "
       >
-        {/* soft background blobs (subtle) */}
-        <div className="pointer-events-none absolute -top-6 -left-6 h-24 w-24 rounded-full bg-emerald-200/20 blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-8 -right-8 h-28 w-28 rounded-full bg-amber-200/20 blur-3xl" />
-
         {err && (
           <div className="mb-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
             {err}
@@ -80,10 +76,7 @@ export default function BookCarousel({ title = "Recommended" }) {
             className="!px-1"
           >
             {rows.map((b) => {
-              const availability = (b.availability || b.status || "")
-                .toString()
-                .toLowerCase();
-              const { label, className } = getAvailabilityMeta(availability);
+              const typeMeta = getTypeMeta(b.type, b.availability);
 
               return (
                 <SwiperSlide key={b._id}>
@@ -108,12 +101,12 @@ export default function BookCarousel({ title = "Recommended" }) {
                         )}
                       </div>
 
-                      {/* Availability badge inside photo */}
-                      {label && (
+                      {/* TYPE badge */}
+                      {typeMeta.label && (
                         <span
-                          className={`absolute left-2 top-2 rounded-full px-2 py-0.5 text-[11px] font-medium ${className}`}
+                          className={`absolute left-2 top-2 rounded-md px-2 py-0.5 text-[11px] font-medium text-white ${typeMeta.className}`}
                         >
-                          {label}
+                          {typeMeta.label}
                         </span>
                       )}
                     </div>
@@ -133,25 +126,23 @@ export default function BookCarousel({ title = "Recommended" }) {
   );
 }
 
-function getAvailabilityMeta(av) {
-  switch (av) {
-    case "available":
-    case "in stock":
-    case "open":
-      return { label: "Available", className: "bg-emerald-600 text-white" };
-    case "requested":
-    case "reserved":
-      return { label: "Reserved", className: "bg-amber-500 text-white" };
-    case "borrowed":
-    case "unavailable":
-    case "checked out":
-      return { label: "Borrowed", className: "bg-slate-500 text-white" };
-    case "pending":
-    case "review":
-      return { label: "Pending", className: "bg-blue-500 text-white" };
-    default:
-      return { label: "", className: "" };
+/* ---------- helpers ---------- */
+
+// Show "Giveaway" / "Exchange" if available, "Exchanged" if already taken
+function getTypeMeta(type, availability) {
+  const t = String(type || "").toLowerCase();
+  const av = String(availability || "").toLowerCase();
+
+  if (av === "unavailable") {
+    return { label: "Exchanged", className: "bg-slate-500" };
   }
+  if (t === "giveaway") {
+    return { label: "Giveaway", className: "bg-emerald-600" };
+  }
+  if (t === "exchange") {
+    return { label: "Exchange", className: "bg-indigo-600" };
+  }
+  return { label: "", className: "" };
 }
 
 function SkeletonRow() {

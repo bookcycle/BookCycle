@@ -86,15 +86,7 @@ export default function AdminLayout() {
                             Navigation
                         </div>
 
-                        <NavLink
-                            to="/admin"
-                            end
-                            className={({ isActive }) => `${linkBase} ${isActive ? linkActive : linkIdle}`}
-                        >
-                            <LayoutDashboard size={20} className="flex-shrink-0" />
-                            <span className="font-medium">Dashboard</span>
-                            <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/0 to-purple-600/0 group-hover:from-indigo-500/10 group-hover:to-purple-600/10 transition-all duration-300"></div>
-                        </NavLink>
+
 
                         <NavLink
                             to="/admin/pending"

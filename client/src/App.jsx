@@ -60,7 +60,7 @@ function RoutedApp() {
               </AdminRoute>
             }
           >
-            <Route index element={<Dashboard />} />
+            <Route index element={<PendingBooks/>} />
             <Route path="pending" element={<PendingBooks />} />
             <Route path="rejected" element={<RejectedBooks />} />
           </Route>
