@@ -16,7 +16,7 @@ export default function HomePage() {
 
       <main className="mx-auto max-w-6xl px-4 pb-20">
         <section className="mt-10">
-          <BookCarousel title="New this week" />
+          <BookCarousel title="Recommended" />
         </section>
 
         <section className="mt-14">

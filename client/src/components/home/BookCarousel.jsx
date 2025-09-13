@@ -9,7 +9,7 @@ import { Navigation, FreeMode, A11y, Keyboard } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/navigation";
 
-export default function BookCarousel({ title = "New this week" }) {
+export default function BookCarousel({ title = "Recommended" }) {
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
