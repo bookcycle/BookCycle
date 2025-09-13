@@ -1,18 +1,35 @@
-// src/pages/Home.jsx
 import React from "react";
-import ChatWidget from "../components/ChatbotWidget"; // খেয়াল করো: ফাইলনেম ChatWidget.jsx
+import Hero from "../components/home/Hero";
+import CategoryChips from "../components/home/CategoryChips";
+import BookCarousel from "../components/home/BookCarousel";
+import HowItWorks from "../components/home/HowItWorks";
+import CTASection from "../components/home/CTASection";
+import ChatWidget from "../components/ChatbotWidget"; 
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-neutral-50 text-neutral-900 p-4 md:p-6">
-      <div className="mx-auto max-w-3xl">
-        <h1 className="text-2xl font-semibold mb-3">BookCycle</h1>
-        <p className="text-sm text-neutral-600 mb-4">
-          Borrow • Exchange • Giveaway — Find and share books in your community.
-        </p>
-      </div>
+    <div className="min-h-screen" style={{ background: "linear-gradient(180deg,#F7F5F2 0%,#F3F1EC 100%)" }}>
+      <Hero />
 
-      {/* Floating Chat Widget (bottom-right) */}
+      <main className="mx-auto max-w-6xl px-4 pb-20">
+        <section className="mt-8">
+          <CategoryChips />
+        </section>
+
+        <section className="mt-10">
+          <BookCarousel title="New this week" />
+        </section>
+
+        <section className="mt-14">
+          <HowItWorks />
+        </section>
+
+        <section className="mt-14">
+          <CTASection />
+        </section>
+      </main>
+
+      {/* Floating Chat Widget */}
       <ChatWidget position="bottom-right" btnLabel="Book Genie" />
     </div>
   );
