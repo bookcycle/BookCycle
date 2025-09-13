@@ -1,7 +1,8 @@
+// client/src/pages/BookDetails.jsx
 import React, { useEffect, useState } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, ArrowRight, Send, Clock, MessageCircle } from "lucide-react";
-import { api } from "../lib/api"; // uses your axios wrapper
+import { api } from "../lib/api";
 
 const BookDetails = () => {
   const { id } = useParams();
@@ -13,23 +14,16 @@ const BookDetails = () => {
   const [loggedInUserId, setLoggedInUserId] = useState(null);
   const [requestSent, setRequestSent] = useState(false);
 
-  // small helper to read token (supports both keys you've used across files)
-  const getToken = () =>
-    localStorage.getItem("ptb_token") || localStorage.getItem("authToken") || "";
-
   useEffect(() => {
     let mounted = true;
 
     const fetchBookDetails = async () => {
       try {
         setLoading(true);
-
-        // parallel fetch: book + me
         const [bookRes, meRes] = await Promise.all([
           api.get(`/books/${id}`),
           api.get(`/auth/me`),
         ]);
-
         if (!mounted) return;
 
         const b = bookRes?.book || bookRes;
@@ -38,7 +32,6 @@ const BookDetails = () => {
         setBook(b || null);
         setLoggedInUserId(me?._id || me?.id || null);
 
-        // check existing transactions for this book (pending from me)
         try {
           const txRes = await api.get(`/transactions?book_id=${id}`);
           const txs = txRes?.transactions || txRes || [];
@@ -51,10 +44,7 @@ const BookDetails = () => {
               )
             : false;
           setRequestSent(hasPending);
-        } catch {
-          // If transactions endpoint isn't ready, just ignore gracefully.
-        }
-
+        } catch {}
         setError(null);
       } catch (e) {
         setError(e?.message || "Failed to fetch data");
@@ -79,25 +69,19 @@ const BookDetails = () => {
     }
   };
 
-  // navigate back helper
   const handleBack = () => {
-    // go back if possible, otherwise go home
     if (window.history.length > 1) navigate(-1);
     else navigate("/");
   };
 
-  // open chat with owner
   const handleOpenChat = (owner) => {
-    // adjust the route/query if your Chat page expects something else
     navigate(`/chat?to=${owner}`);
   };
 
-  // Loading / Error states
   if (loading) return <p className="p-6">Loading book details...</p>;
   if (error) return <p className="p-6 text-red-500">{error}</p>;
   if (!book) return <p className="p-6 text-red-500">Book not found.</p>;
 
-  // Field fallbacks so it works with your current schema
   const cover =
     book.cover_image
       ? `${import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, "")}/storage/${book.cover_image}`
@@ -120,7 +104,6 @@ const BookDetails = () => {
 
   return (
     <div className="min-h-screen mt-8 relative">
-      {/* Back button */}
       <div className="max-w-[1050px] mx-auto w-full px-4 mb-4">
         <button
           onClick={handleBack}
@@ -132,24 +115,14 @@ const BookDetails = () => {
       </div>
 
       <div className="flex flex-row">
-        {/* Book cover */}
         <div className="w-72 h-auto bg-[#f0eee2] rounded-xl flex items-center justify-center shadow-sm relative mx-32 ">
-          <img
-            src={cover}
-            alt={title}
-            className="object-cover rounded-lg w-full h-full"
-          />
+          <img src={cover} alt={title} className="object-cover rounded-lg w-full h-full" />
         </div>
 
-        {/* Book details header */}
         <div className="flex justify-between w-full">
           <div className="w-1/2">
-            <h3 className="font-bold text-gray-900 text-4xl p-3 -mx-24">
-              {title}
-            </h3>
-            <p className="w-full text-2xl text-gray-500 px-4 -mx-24">
-              By {author}
-            </p>
+            <h3 className="font-bold text-gray-900 text-4xl p-3 -mx-24">{title}</h3>
+            <p className="w-full text-2xl text-gray-500 px-4 -mx-24">By {author}</p>
             <p className="w-fit text-lg font-semibold rounded-full text-gray-700 border border-black -mx-20 px-4 py-2 my-4 capitalize">
               {status}
             </p>
@@ -157,7 +130,6 @@ const BookDetails = () => {
         </div>
       </div>
 
-      {/* Main content card */}
       <div className="flex flex-col gap-12">
         <div className="max-w-[1050px] w-full h-auto mx-auto bg-[#f8f9fa] border border-gray-200 rounded-xl px-16 py-24 shadow-lg -my-18">
           <h2 className="text-xl font-bold mb-4">Genre</h2>
@@ -170,13 +142,8 @@ const BookDetails = () => {
             <p className="text-gray-700">{description}</p>
           </div>
 
-          {/* Actions: owner + request */}
           {loggedInUserId && ownerId && String(loggedInUserId) !== String(ownerId) && (
             <div className="mt-8 flex flex-col gap-4 w-1/3">
-              {/* Owner profile */}
-         
-
-              {/* Send exchange request */}
               {status === "available" && !requestSent && (
                 <button
                   onClick={handleSendRequest}
@@ -187,7 +154,6 @@ const BookDetails = () => {
                 </button>
               )}
 
-              {/* Pending state */}
               {requestSent && (
                 <button
                   disabled
@@ -200,7 +166,6 @@ const BookDetails = () => {
             </div>
           )}
 
-          {/* If user not logged in, nudge to login to request */}
           {!loggedInUserId && (
             <div className="mt-8">
               <button
@@ -215,16 +180,14 @@ const BookDetails = () => {
         </div>
       </div>
 
-      {/* Floating Chat Button (only if viewer is not the owner) */}
       {loggedInUserId && ownerId && !isViewerOwner && (
         <button
           onClick={() => handleOpenChat(ownerId)}
           className="fixed bottom-6 right-6 p-4 rounded-full shadow-lg bg-gray-900 text-white hover:bg-sky-500 transition group"
           aria-label="Chat with owner"
-          title="Chat with owner"
+          title="Open chat with the owner"
         >
           <MessageCircle size={24} />
-          {/* tiny tooltip on hover (optional) */}
           <span className="absolute right-full mr-3 top-1/2 -translate-y-1/2 pointer-events-none opacity-0 group-hover:opacity-100 bg-gray-900 text-white text-xs px-2 py-1 rounded">
             Chat with owner
           </span>

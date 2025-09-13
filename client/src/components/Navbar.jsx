@@ -2,13 +2,16 @@ import React, { useState } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { FaUser, FaCompass, FaHome, FaCog, FaBars, FaTimes, FaSignOutAlt } from "react-icons/fa";
-import { logout as logoutAction } from "../features/auth/authSlice"; // if you have one
+import { MdChatBubble } from "react-icons/md";
+import { logout as logoutAction } from "../features/auth/authSlice"; 
 
 const NAV_ITEMS = [
   { to: "/", label: "Home", icon: FaHome },
   { to: "/explore", label: "Explore", icon: FaCompass },
   { to: "/profile", label: "Profile", icon: FaUser, authOnly: true },
+  { to: "/chat", label: "Chat", icon: MdChatBubble , authOnly: true },
   { to: "/settings", label: "Settings", icon: FaCog, authOnly: true },
+
 ];
 
 export default function Navbar() {
@@ -23,12 +26,12 @@ export default function Navbar() {
 
   const handleLogout = () => {
     // keep both Redux and localStorage in sync
-    try { dispatch(logoutAction?.()); } catch {}
+    try { dispatch(logoutAction?.()); } catch { }
     localStorage.removeItem("ptb_token");
     navigate("/login");
   };
 
-  if (location.pathname === "/login" || location.pathname === "/signup") return null;
+  if (location.pathname === "/login" || location.pathname === "/signup" || location.pathname === "/chat") return null;
 
   const visibleItems = NAV_ITEMS.filter((i) => (i.authOnly ? isAuthed : true));
 
@@ -36,10 +39,9 @@ export default function Navbar() {
     <NavLink
       to={to}
       className={({ isActive }) =>
-        `flex items-center gap-3 px-4 py-3 rounded-md ${
-          isActive
-            ? "bg-[#E0F2F1] text-[#004D40] font-semibold"
-            : "text-gray-800 hover:text-[#00897B] hover:bg-[#F1F8F7]"
+        `flex items-center gap-3 px-4 py-3 rounded-md ${isActive
+          ? "bg-[#E0F2F1] text-[#004D40] font-semibold"
+          : "text-gray-800 hover:text-[#00897B] hover:bg-[#F1F8F7]"
         }`
       }
       end
@@ -97,10 +99,9 @@ export default function Navbar() {
               key={to}
               to={to}
               className={({ isActive }) =>
-                `flex items-center gap-3 rounded-xl px-3 py-2 ${
-                  isActive
-                    ? "bg-gradient-to-b from-[#00897B] to-[#004D40] text-white font-semibold shadow-sm"
-                    : "text-gray-800 hover:bg-[#E0F2F1]"
+                `flex items-center gap-3 rounded-xl px-3 py-2 ${isActive
+                  ? "bg-gradient-to-b from-[#00897B] to-[#004D40] text-white font-semibold shadow-sm"
+                  : "text-gray-800 hover:bg-[#E0F2F1]"
                 }`
               }
               end

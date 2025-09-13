@@ -50,6 +50,7 @@ function RoutedApp() {
           <Route path="/signup" element={<Signup />} />
           <Route path="/chat" element={<ChatPage />} />
 
+
           {/* Admin routes */}
           <Route
             path="/admin"
