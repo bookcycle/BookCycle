@@ -7,11 +7,13 @@ import ChatWidget from "../components/ChatbotWidget";
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen" style={{ background: "linear-gradient(180deg,#F7F5F2 0%,#F3F1EC 100%)" }}>
+    <div
+      className="min-h-screen"
+      style={{ background: "linear-gradient(180deg,#F7F5F2 0%,#F3F1EC 100%)" }}
+    >
       <Hero />
 
       <main className="mx-auto max-w-6xl px-4 pb-20">
-
         <section className="mt-10">
           <BookCarousel title="New this week" />
         </section>
@@ -25,8 +27,8 @@ export default function HomePage() {
         </section>
       </main>
 
-      {/* Floating Chat Widget */}
-      <ChatWidget position="bottom-right" btnLabel="Book Genie" />
+      {/* Chatbot is portal-based, no extra wrapper needed */}
+      <ChatWidget btnLabel="Book Genie" />
     </div>
   );
 }
