@@ -1,4 +1,6 @@
-import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { useEffect } from "react";
+import { BrowserRouter, Routes, Route, useLocation, useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 
 import Navbar from "./components/Navbar";
 import Home from "./pages/Home";
@@ -9,6 +11,7 @@ import Login from "./pages/auth/Login";
 import Signup from "./pages/auth/Signup";
 import ChatPage from "./pages/Chat";
 import BookDetails from "./pages/BookDetails"; 
+
 // Admin
 import AdminRoute from "./routes/AdminRoute";
 import AdminLayout from "./admin/AdminLayout";
@@ -18,7 +21,17 @@ import Dashboard from "./admin/Dashboard";
 
 function RoutedApp() {
   const { pathname } = useLocation();
+  const navigate = useNavigate();
+  const { user } = useSelector((s) => s.auth);
+
   const isAdminRoute = pathname === "/admin" || pathname.startsWith("/admin/");
+
+  // 🚀 auto redirect if role is admin
+  useEffect(() => {
+    if (user?.role === "admin" && !isAdminRoute) {
+      navigate("/admin", { replace: true });
+    }
+  }, [user, isAdminRoute, navigate]);
 
   return (
     <div className={isAdminRoute ? "min-h-screen" : "min-h-screen xl:flex"}>
@@ -30,14 +43,14 @@ function RoutedApp() {
           {/* Public/user routes */}
           <Route path="/" element={<Home />} />
           <Route path="/explore" element={<Explore />} />
-          <Route path="/book/:id" element={<BookDetails />} /> {/* ✅ NEW */}
+          <Route path="/book/:id" element={<BookDetails />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/chat" element={<ChatPage />} />
 
-          {/* Admin routes (protected + nested) */}
+          {/* Admin routes */}
           <Route
             path="/admin"
             element={
@@ -51,8 +64,6 @@ function RoutedApp() {
             <Route path="rejected" element={<RejectedBooks />} />
           </Route>
 
-          {/* Optional: 404 */}
-          {/* <Route path="*" element={<div className="p-6">Not Found</div>} /> */}
         </Routes>
       </main>
     </div>
