@@ -3,6 +3,7 @@ import {
   loginUser,
   getUserById,
 } from "../services/auth.service.js";
+import { User } from "../models/User.js"; 
 
 import { updateUserById } from "../services/user.service.js";
 
@@ -24,7 +25,7 @@ export async function signup(req, res, next) {
     // Convention: 201 for resources created
     return res.status(201).json(result); // { user, token }
   } catch (err) {
-    next(err); // Let global error handler format it
+    next(err); 
   }
 }
 
@@ -73,6 +74,33 @@ export async function updateMe(req, res, next) {
 
     const user = await updateUserById(req.user.id, updates);
     return res.status(200).json({ user });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function changePassword(req, res, next) {
+  try {
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ error: "Both fields are required" });
+    }
+
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const valid = await user.comparePassword(currentPassword);
+    if (!valid) {
+      return res.status(401).json({ error: "Current password is incorrect" });
+    }
+
+    user.password = newPassword; // will be hashed by pre("save")
+    await user.save();
+
+    res.json({ message: "Password updated successfully" });
   } catch (err) {
     next(err);
   }
