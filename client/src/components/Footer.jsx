@@ -9,10 +9,10 @@ export default function Footer() {
           {/* Brand */}
           <div>
             <h3 className="text-lg font-semibold text-emerald-700">
-              PassTheBook
+              BookLink
             </h3>
             <p className="mt-2 text-sm text-slate-600">
-              Borrow, exchange, and give away books in your community.  
+              Exchange and give away books in your community.  
               Building a culture of shared knowledge & sustainability.
             </p>
             <div className="mt-3 flex gap-3 text-slate-500">
@@ -75,7 +75,7 @@ export default function Footer() {
 
         {/* Bottom note */}
         <div className="mt-8 border-t border-[#E8E4DC] pt-4 text-center text-sm text-slate-500">
-          © {new Date().getFullYear()} PassTheBook. All rights reserved.
+          © {new Date().getFullYear()} BookLink. All rights reserved.
         </div>
       </div>
     </footer>
