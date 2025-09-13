@@ -1,10 +1,9 @@
 import React from "react";
 import Hero from "../components/home/Hero";
-import CategoryChips from "../components/home/CategoryChips";
 import BookCarousel from "../components/home/BookCarousel";
 import HowItWorks from "../components/home/HowItWorks";
 import CTASection from "../components/home/CTASection";
-import ChatWidget from "../components/ChatbotWidget"; 
+import ChatWidget from "../components/ChatbotWidget";
 
 export default function HomePage() {
   return (
@@ -12,9 +11,6 @@ export default function HomePage() {
       <Hero />
 
       <main className="mx-auto max-w-6xl px-4 pb-20">
-        <section className="mt-8">
-          <CategoryChips />
-        </section>
 
         <section className="mt-10">
           <BookCarousel title="New this week" />
