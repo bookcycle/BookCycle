@@ -117,7 +117,7 @@ export default function SignupPage() {
         <div className="flex-1 flex items-center justify-center px-8">
           <div className="w-full max-w-sm">
             <header className="text-center mb-6">
-              <h1 className="text-3xl font-bold text-[#1C1C1C]">Join PassTheBook</h1>
+              <h1 className="text-3xl font-bold text-[#1C1C1C]">Join BookCycle</h1>
               <p className="text-[#1C1C1C]/80">Start your reading adventure</p>
             </header>
 

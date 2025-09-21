@@ -136,9 +136,9 @@ const LoginPage = () => {
           <div className="w-full max-w-sm">
             <header className="text-center mb-8">
               <h1 className="text-3xl lg:text-4xl font-bold text-[#1C1C1C] mb-2">
-                Join PassTheBook
+                Welcome Back
               </h1>
-              <p className="text-[#1C1C1C]/70 text-lg">Start your reading adventure</p>
+              <p className="text-[#1C1C1C]/70 text-lg">Access your BookCycle account</p>
             </header>
 
             <form onSubmit={handleSubmit} className="space-y-5" noValidate>
