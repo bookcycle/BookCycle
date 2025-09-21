@@ -2,30 +2,27 @@ import {
   registerUser,
   loginUser,
   getUserById,
+  loginWithGoogle,
 } from "../services/auth.service.js";
-import { User } from "../models/User.js"; 
-
+import { User } from "../models/User.js";
 import { updateUserById } from "../services/user.service.js";
 
 export async function signup(req, res, next) {
   try {
     let { firstName, lastName, email, password } = req.body;
 
-    // Basic validation
     if (!firstName || !lastName || !email || !password) {
       return res.status(400).json({ error: "Missing fields" });
     }
 
-    // Normalize inputs
     email = String(email).trim().toLowerCase();
     firstName = String(firstName).trim();
     lastName = String(lastName).trim();
 
     const result = await registerUser({ firstName, lastName, email, password });
-    // Convention: 201 for resources created
-    return res.status(201).json(result); // { user, token }
+    return res.status(201).json(result);
   } catch (err) {
-    next(err); 
+    next(err);
   }
 }
 
@@ -38,7 +35,7 @@ export async function login(req, res, next) {
     email = String(email).trim().toLowerCase();
 
     const result = await loginUser({ email, password });
-    return res.status(200).json(result); // { user, token }
+    return res.status(200).json(result);
   } catch (err) {
     next(err);
   }
@@ -55,19 +52,16 @@ export async function me(req, res, next) {
 
 export async function updateMe(req, res, next) {
   try {
-    // Only allow specific fields to be updated
     const allowed = ["firstName", "lastName", "avatarUrl"];
 
     const updates = {};
     for (const k of allowed) {
       if (req.body[k] !== undefined) {
-        // Normalize strings
         updates[k] =
           typeof req.body[k] === "string" ? req.body[k].trim() : req.body[k];
       }
     }
 
-    // If nothing valid to update, return 400
     if (Object.keys(updates).length === 0) {
       return res.status(400).json({ error: "No valid fields to update" });
     }
@@ -92,15 +86,33 @@ export async function changePassword(req, res, next) {
       return res.status(404).json({ error: "User not found" });
     }
 
+    // Optional: block for Google-only users
+    if (!user.password) {
+      return res
+        .status(400)
+        .json({ error: "Password change not available for Google account" });
+    }
+
     const valid = await user.comparePassword(currentPassword);
     if (!valid) {
       return res.status(401).json({ error: "Current password is incorrect" });
     }
 
-    user.password = newPassword; // will be hashed by pre("save")
+    user.password = newPassword; // hashed by pre("save")
     await user.save();
 
     res.json({ message: "Password updated successfully" });
+  } catch (err) {
+    next(err);
+  }
+}
+
+// NEW: Google OAuth endpoint
+export async function googleAuth(req, res, next) {
+  try {
+    const { idToken } = req.body;
+    const result = await loginWithGoogle({ idToken });
+    return res.status(200).json(result); // { user, token }
   } catch (err) {
     next(err);
   }

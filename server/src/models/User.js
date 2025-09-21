@@ -1,10 +1,11 @@
 import mongoose from "mongoose";
-import bcrypt from "bcryptjs"; //or bcrypt
+import bcrypt from "bcryptjs";
 
-const userSchema = mongoose.Schema({
-    firstName: {type: String, required: true, trim: true},
-    lastName: {type: String, required: true, trim: true},
-        email: {
+const userSchema = mongoose.Schema(
+  {
+    firstName: { type: String, required: true, trim: true },
+    lastName: { type: String, required: true, trim: true },
+    email: {
       type: String,
       required: true,
       unique: true,
@@ -12,24 +13,28 @@ const userSchema = mongoose.Schema({
       index: true,
       match: /.+\@.+\..+/,
     },
-    password: {type:String, required: true, minlength: 8},
- role: { type: String, enum: ["user", "admin"], default: "user" },
+    // Optional for Google users
+    password: { type: String, minlength: 8 },
+    // OAuth fields
+    googleId: { type: String, unique: true, sparse: true },
+    avatarUrl: { type: String },
+    authProvider: { type: String, enum: ["local", "google"], default: "local" },
+
+    role: { type: String, enum: ["user", "admin"], default: "user" },
   },
   { timestamps: true }
 );
 
-
-//this func shall be run just before User document is saved
-userSchema.pre("save", async function(next){
-    if(!this.isModified("password"))
-        return next()
-    this.password = await bcrypt.hash(this.password, 10);
-    next();
+// Hash password only if present/modified
+userSchema.pre("save", async function (next) {
+  if (!this.isModified("password") || !this.password) return next();
+  this.password = await bcrypt.hash(this.password, 10);
+  next();
 });
 
-userSchema.methods.comparePassword = function(plain){
-    return bcrypt.compare(plain, this.password);
-}
+userSchema.methods.comparePassword = function (plain) {
+  if (!this.password) return false; // Google account with no local password
+  return bcrypt.compare(plain, this.password);
+};
 
-
-export const User = mongoose.model("User", userSchema); //the name of the mongoDb collection'll be users (automatically pluralized)
+export const User = mongoose.model("User", userSchema);
