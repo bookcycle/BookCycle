@@ -75,7 +75,7 @@ export default function Footer() {
 
         {/* Bottom note */}
         <div className="mt-8 border-t border-[#E8E4DC] pt-4 text-center text-sm text-slate-500">
-          © {new Date().getFullYear()} BookLink. All rights reserved.
+          © {new Date().getFullYear()} BookCycle. All rights reserved.
         </div>
       </div>
     </footer>
