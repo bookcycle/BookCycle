@@ -35,13 +35,24 @@ export async function createRequest({ bookId, senderId }) {
   return tx;
 }
 
+// Per-book + scoped to current user (existing behavior for /transactions?book_id=...)
 export async function listMyTransactionsForBook({ userId, bookId }) {
-  // Show transactions where the user is either sender or receiver for this book
   const filter = { book: bookId, $or: [{ sender: userId }, { receiver: userId }] };
   const rows = await Transaction.find(filter)
     .sort({ createdAt: -1 })
     .populate("sender", "_id firstName lastName email")
-    .populate("receiver", "_id firstName lastName email");
+    .populate("receiver", "_id firstName lastName email")
+    .populate("book", "_id title owner");
+  return rows;
+}
+
+export async function listMyTransactions({ userId }) {
+  const filter = { $or: [{ sender: userId }, { receiver: userId }] };
+  const rows = await Transaction.find(filter)
+    .sort({ updatedAt: -1 })
+    .populate("sender", "_id firstName lastName email")
+    .populate("receiver", "_id firstName lastName email")
+    .populate("book", "_id title owner");
   return rows;
 }
 
@@ -74,7 +85,7 @@ export async function acceptRequest({ txId, ownerId }) {
     await book.save();
   }
 
-  // Optionally: auto-reject other pending requests for the same book
+  // Auto-reject other pending requests for the same book
   await Transaction.updateMany(
     { _id: { $ne: tx._id }, book: tx.book._id, status: "pending" },
     { $set: { status: "rejected" } }
