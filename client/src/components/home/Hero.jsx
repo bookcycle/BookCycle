@@ -90,12 +90,12 @@ export default function Hero() {
                                 <div className="mx-auto grid w-[32rem] max-w-full grid-cols-3 gap-4">
                                     <TiltCard
                                         className="col-span-1 row-span-2 rotate-[-2deg]"
-                                        img="https://images.unsplash.com/photo-1516979187457-637abb4f9353?q=80&w=900&auto=format&fit=crop"
+                                        img="https://images.unsplash.com/photo-1722977735215-d28f2ac6efba?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NTJ8fGJvb2slMjBiYWNrZ3JvdW5kfGVufDB8fDB8fHww"
                                         title="Fictions"
                                     />
                                     <TiltCard
                                         className="col-span-2 rotate-[2deg]"
-                                        img="https://images.unsplash.com/photo-1512820790803-83ca734da794?q=80&w=1200&auto=format&fit=crop"
+                                        img="https://images.unsplash.com/photo-1747792607295-ada93d1b320c?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NjN8fGJvb2slMjBsaWJyYXJ5fGVufDB8fDB8fHww"
                                         title="Novels"
                                     />
                                 </div>
