@@ -1,4 +1,3 @@
-// client/src/features/auth/authSlice.js
 import { createSlice } from "@reduxjs/toolkit";
 
 const initialToken = localStorage.getItem("ptb_token") || null;
@@ -16,8 +15,8 @@ const initialUser =
 const authSlice = createSlice({
   name: "auth",
   initialState: {
-    user: initialUser,    // may be null until /auth/me returns
-    token: initialToken,  // "ptb_token"
+    user: initialUser,    
+    token: initialToken,  
   },
   reducers: {
     setCredentials(state, action) {
@@ -28,8 +27,6 @@ const authSlice = createSlice({
       }
       if (user) {
         state.user = user;
-        // 🔐 this is the critical line for chat:
-        // save your Mongo _id so UI can exclude you from participants
         const myId = user._id || user.id;
         if (myId) localStorage.setItem("ptb_user_id", String(myId));
 

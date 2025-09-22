@@ -11,7 +11,7 @@ import {
   FaSignOutAlt,
 } from "react-icons/fa";
 import { MdChatBubble } from "react-icons/md";
-import { GiCycle } from "react-icons/gi"; // ← NEW logo
+import { GiCycle } from "react-icons/gi"; 
 import { logout as logoutAction } from "../features/auth/authSlice";
 
 const NAV_ITEMS = [
@@ -43,7 +43,8 @@ export default function Navbar() {
   if (
     location.pathname === "/login" ||
     location.pathname === "/signup" ||
-    location.pathname === "/chat"
+    location.pathname === "/chat" ||
+    location.pathname === "/book/:id"
   )
     return null;
 
@@ -100,10 +101,7 @@ export default function Navbar() {
 
             {isAuthed ? (
               <button
-                onClick={() => {
-                  handleLogout();
-                  setOpen(false);
-                }}
+                onClick={() => { handleLogout(); setOpen(false); }}
                 className="flex items-center gap-3 px-4 py-3 rounded-md text-gray-800 hover:text-[#00897B] hover:bg-[#F1F8F7]"
               >
                 <FaSignOutAlt size={18} />
