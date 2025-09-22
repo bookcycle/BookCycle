@@ -1,23 +1,18 @@
-// server/src/realtime/socket.js
 import { Server } from "socket.io";
 import jwt from "jsonwebtoken";
 import { sendMessage, markConversationRead } from "../services/chat.service.js";
 
-/**
- * Call as: setupSocket(server, { allowedOrigins })
- * where allowedOrigins is an array of strings (origins)
- */
+
 export function setupSocket(server, { allowedOrigins = [] } = {}) {
   const io = new Server(server, {
     cors: {
       origin(origin, cb) {
-        // Allow server-to-server / curl (no Origin)
         if (!origin || allowedOrigins.includes(origin)) return cb(null, true);
         return cb(new Error(`Socket.IO CORS blocked: ${origin}`));
       },
       credentials: true,
     },
-    transports: ["websocket", "polling"],      // fallback if WS is blocked briefly
+    transports: ["websocket", "polling"],   
     pingTimeout: 30000,
     pingInterval: 25000,
   });

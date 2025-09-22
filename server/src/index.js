@@ -1,4 +1,3 @@
-// server/src/index.js
 import http from "http";
 import express from "express";
 import cors from "cors";
@@ -17,18 +16,16 @@ import transactionRoutes from "./routes/transaction.routes.js";
 const app = express();
 
 /** ---------- Security / Core Middlewares ---------- */
-app.set("trust proxy", 1); // needed if you ever set secure cookies behind Render/Proxies
+app.set("trust proxy", 1);
 app.use(helmet());
 app.use(express.json());
 
 /** ---------- CORS ---------- */
-/** Allow your GH Pages app, GH root, localhost (dev), and optionally your own API origin */
 const allowedOrigins = [
-  process.env.CLIENT_URL,                 // e.g. https://jnkarim.github.io/BookCycle
+  process.env.CLIENT_URL,                 
   "https://jnkarim.github.io",
-  "https://jnkarim.github.io/BookCycle",
   "http://localhost:5173",
-  process.env.SERVER_URL                  // e.g. https://your-app.onrender.com (optional)
+  process.env.SERVER_URL                  
 ].filter(Boolean);
 
 app.use(
