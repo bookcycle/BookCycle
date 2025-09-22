@@ -1,8 +1,7 @@
-// src/components/ChatbotCard.jsx
 import React, { useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { api } from "../lib/api"; // তোমার axios wrapper
+import { api } from "../lib/api"; 
 
 export default function ChatbotCard() {
   const [messages, setMessages] = useState([
@@ -27,7 +26,6 @@ export default function ChatbotCard() {
     const text = draft.trim();
     if (!text || busy) return;
 
-    // UI-তে ইউজারের মেসেজ আগে দেখাই
     const userMsg = { id: nanoid(), role: "user", content: text };
     setMessages((m) => [...m, userMsg]);
     setDraft("");

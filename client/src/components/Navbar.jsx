@@ -1,30 +1,53 @@
 import React, { useState } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
-import { FaUser, FaCompass, FaHome, FaCog, FaBars, FaTimes, FaSignOutAlt } from "react-icons/fa";
+import { useSelector, useDispatch } from "react-redux";
+import {
+  FaUser,
+  FaCompass,
+  FaHome,
+  FaCog,
+  FaBars,
+  FaTimes,
+  FaSignOutAlt,
+  FaClock,
+} from "react-icons/fa";
+import { MdChatBubble } from "react-icons/md";
+import { GiCycle } from "react-icons/gi";
+import { logout as logoutAction } from "../features/auth/authSlice";
 
 const NAV_ITEMS = [
   { to: "/", label: "Home", icon: FaHome },
   { to: "/explore", label: "Explore", icon: FaCompass },
-  { to: "/profile", label: "Profile", icon: FaUser },
-  { to: "/settings", label: "Settings", icon: FaCog },
+  { to: "/profile", label: "Profile", icon: FaUser, authOnly: true },
+  { to: "/chat", label: "Chat", icon: MdChatBubble, authOnly: true },
+  { to: "/activity", label: "Activity", icon: FaClock, authOnly: true },
+  { to: "/settings", label: "Settings", icon: FaCog, authOnly: true },
 ];
 
 export default function Navbar() {
   const [open, setOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
-  const token = localStorage.getItem("ptb_token");
+  // read token from Redux; fallback to localStorage (first load)
+  const { token: storeToken } = useSelector((s) => s.auth || {});
+  const isAuthed = !!(storeToken || localStorage.getItem("ptb_token"));
 
   const handleLogout = () => {
+    try {
+      dispatch(logoutAction?.());
+    } catch {}
     localStorage.removeItem("ptb_token");
     navigate("/login");
   };
 
-  // Hide navbar on the login & signup pages
-  if (location.pathname === "/login" || location.pathname === "/signup") {
-    return null;
-  }
+  // routes where we don't render any nav at all
+  if (location.pathname === "/login" || location.pathname === "/signup") return null;
+
+  const visibleItems = NAV_ITEMS.filter((i) => (i.authOnly ? isAuthed : true));
+  const isCollapsed =
+    location.pathname.startsWith("/explore") || location.pathname.startsWith("/chat");
 
   const MobileItem = ({ to, label, Icon }) => (
     <NavLink
@@ -47,10 +70,14 @@ export default function Navbar() {
 
   return (
     <>
-      {/* Mobile Navbar */}
+      {/* Mobile Navbar (unchanged) */}
       <header className="xl:hidden sticky top-0 z-40 bg-[#FDFCF9] text-gray-800 border-b border-gray-200">
         <div className="mx-auto max-w-screen-xl px-4 h-14 flex items-center justify-between">
-          <span className="font-semibold tracking-tight text-[#00897B]">BookLink</span>
+          <div className="flex items-center gap-2 text-[#00897B]">
+            <GiCycle size={20} aria-hidden="true" />
+            <span className="font-semibold tracking-tight">BookCycle</span>
+          </div>
+
           <button
             type="button"
             aria-label={open ? "Close menu" : "Open menu"}
@@ -61,18 +88,17 @@ export default function Navbar() {
           </button>
         </div>
 
-        {/* Dropdown */}
         <div
           className={`overflow-hidden transition-[max-height] duration-300 ${
             open ? "max-h-96" : "max-h-0"
           }`}
         >
           <nav className="bg-[#FDFCF9] border-t border-gray-200 flex flex-col gap-1 py-2">
-            {NAV_ITEMS.map(({ to, label, icon: Icon }) => (
+            {visibleItems.map(({ to, label, icon: Icon }) => (
               <MobileItem key={to} to={to} label={label} Icon={Icon} />
             ))}
 
-            {token ? (
+            {isAuthed ? (
               <button
                 onClick={() => {
                   handleLogout();
@@ -84,60 +110,113 @@ export default function Navbar() {
                 <span className="text-sm">Logout</span>
               </button>
             ) : (
-              <>
-                <MobileItem to="/login" label="Login" Icon={FaCog} />
-                <MobileItem to="/signup" label="Signup" Icon={FaCog} />
-              </>
+              <MobileItem to="/login" label="Login" Icon={FaCog} />
             )}
           </nav>
         </div>
       </header>
 
       {/* Desktop Sidebar */}
-      <aside className="hidden xl:flex bg-[#FDFCF9] text-gray-800 min-h-screen w-64 px-6 py-10 sticky top-0 flex-col border-r border-gray-200">
-        <h1 className="text-[#00897B] font-semibold mb-12 tracking-tight">BookLink</h1>
-        <nav className="flex flex-col gap-2">
-          {NAV_ITEMS.map(({ to, label, icon: Icon }) => (
-            <NavLink
-              key={to}
-              to={to}
-              className={({ isActive }) =>
-                `flex items-center gap-3 rounded-xl px-3 py-2 ${
-                  isActive
-                    ? "bg-gradient-to-b from-[#00897B] to-[#004D40] text-white font-semibold shadow-sm"
-                    : "text-gray-800 hover:bg-[#E0F2F1]"
-                }`
-              }
-              end
-              aria-label={label}
-            >
-              <Icon size={20} className="shrink-0" />
-              <span className="hidden xl:inline">{label}</span>
-            </NavLink>
-          ))}
+      {isCollapsed ? (
+        // Collapsed (icons only) sidebar
+        <aside className="hidden xl:flex bg-[#FDFCF9] text-gray-800 min-h-screen w-20 px-3 py-6 sticky top-0 flex-col border-r border-gray-200">
+          {/* Brand */}
+          <div className="mb-6 flex items-center justify-center text-[#00897B]" title="BookCycle">
+            <GiCycle size={26} aria-hidden="true" />
+          </div>
 
-          {token ? (
-            <button
-              onClick={handleLogout}
-              className="flex items-center gap-3 rounded-xl px-3 py-2 text-gray-800 hover:bg-[#E0F2F1] transition-colors"
-            >
-              <FaSignOutAlt size={20} />
-              <span className="hidden xl:inline">Logout</span>
-            </button>
-          ) : (
-            <>
-              <NavLink to="/login" className="flex items-center gap-3 rounded-xl px-3 py-2 text-gray-800 hover:bg-[#E0F2F1]">
+          {/* Nav icons */}
+          <nav className="flex flex-col items-center gap-2">
+            {visibleItems.map(({ to, label, icon: Icon }) => (
+              <NavLink
+                key={to}
+                to={to}
+                end
+                aria-label={label}
+                title={label}
+                className={({ isActive }) =>
+                  `flex h-11 w-11 items-center justify-center rounded-xl transition ${
+                    isActive
+                      ? "bg-gradient-to-b from-[#00897B] to-[#004D40] text-white shadow-sm"
+                      : "text-gray-700 hover:bg-[#E0F2F1]"
+                  }`
+                }
+              >
+                <Icon size={20} />
+              </NavLink>
+            ))}
+          </nav>
+
+          <div className="mt-auto flex items-center justify-center">
+            {isAuthed ? (
+              <button
+                onClick={handleLogout}
+                aria-label="Logout"
+                title="Logout"
+                className="flex h-11 w-11 items-center justify-center rounded-xl text-gray-700 hover:bg-[#FFEDEC] hover:text-[#9C2B24]"
+              >
+                <FaSignOutAlt size={20} />
+              </button>
+            ) : (
+              <NavLink
+                to="/login"
+                aria-label="Login"
+                title="Login"
+                className="flex h-11 w-11 items-center justify-center rounded-xl text-gray-700 hover:bg-[#E0F2F1]"
+              >
+                <FaCog size={20} />
+              </NavLink>
+            )}
+          </div>
+        </aside>
+      ) : (
+        // Full sidebar
+        <aside className="hidden xl:flex bg-[#FDFCF9] text-gray-800 min-h-screen w-64 px-6 py-10 sticky top-0 flex-col border-r border-gray-200">
+          <div className="mb-6 flex items-center justify-center gap-2 text-[#00897B] w-full">
+            <GiCycle size={24} aria-hidden="true" />
+            <span className="text-2xl font-bold">BookCycle</span>
+          </div>
+
+          <nav className="flex flex-col gap-2">
+            {visibleItems.map(({ to, label, icon: Icon }) => (
+              <NavLink
+                key={to}
+                to={to}
+                className={({ isActive }) =>
+                  `flex items-center gap-3 rounded-xl px-3 py-2 ${
+                    isActive
+                      ? "bg-gradient-to-b from-[#00897B] to-[#004D40] text-white font-semibold shadow-sm"
+                      : "text-gray-800 hover:bg-[#E0F2F1]"
+                  }`
+                }
+                end
+                aria-label={label}
+              >
+                <Icon size={20} className="shrink-0" />
+                <span className="hidden xl:inline">{label}</span>
+              </NavLink>
+            ))}
+
+            {isAuthed ? (
+              <button
+                onClick={handleLogout}
+                className="flex items-center gap-3 rounded-xl px-3 py-2 text-gray-800 hover:bg-[#E0F2F1] transition-colors"
+              >
+                <FaSignOutAlt size={20} />
+                <span className="hidden xl:inline">Logout</span>
+              </button>
+            ) : (
+              <NavLink
+                to="/login"
+                className="flex items-center gap-3 rounded-xl px-3 py-2 text-gray-800 hover:bg-[#E0F2F1]"
+              >
                 <FaCog size={20} />
                 <span className="hidden xl:inline">Login</span>
               </NavLink>
-              <NavLink to="/signup" className="flex items-center gap-3 rounded-xl px-3 py-2 text-gray-800 hover:bg-[#E0F2F1]">
-                <FaCog size={20} />
-                <span className="hidden xl:inline">Signup</span>
-              </NavLink>
-            </>
-          )}
-        </nav>
-      </aside>
+            )}
+          </nav>
+        </aside>
+      )}
     </>
   );
 }

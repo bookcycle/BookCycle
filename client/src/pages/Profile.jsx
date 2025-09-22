@@ -12,13 +12,17 @@ export default function ProfilePage() {
 
   const savedToken = useMemo(
     () => token || localStorage.getItem("ptb_token"),
-    //if token changes only then useMemo() hook will update; otherwise stays same
     [token]
   );
 
   const [loading, setLoading] = useState(!storeUser);
   const [error, setError] = useState("");
   const [openUpload, setOpenUpload] = useState(false);
+
+  // Recent activity: my uploaded books (accepted via public list API)
+  const [myBooks, setMyBooks] = useState([]);
+  const [loadingBooks, setLoadingBooks] = useState(true);
+  const [totalMyBooks, setTotalMyBooks] = useState(0);
 
   useEffect(() => {
     let ignore = false;
@@ -36,7 +40,6 @@ export default function ProfilePage() {
       try {
         const data = await api.get("/auth/me");
         if (ignore) return;
-        //.? is optional chaining operator
         const user = data?.user;
         if (!user) throw new Error("No user data returned");
         dispatch(setCredentials({ user, token: savedToken }));
@@ -55,6 +58,36 @@ export default function ProfilePage() {
     };
   }, [dispatch, navigate, savedToken, storeUser]);
 
+  // Fetch my recent books (accepted only per public list API)
+  useEffect(() => {
+    let cancelled = false;
+    async function loadMyBooks() {
+      if (!storeUser?._id) return;
+      try {
+        setLoadingBooks(true);
+        const data = await api.get("/books", {
+          params: { owner: storeUser._id, limit: 5 },
+        });
+        if (!cancelled) {
+          setMyBooks(Array.isArray(data?.docs) ? data.docs : []);
+          setTotalMyBooks(Number.isFinite(data?.total) ? data.total : 0);
+        }
+      } catch (e) {
+        if (!cancelled) {
+          setMyBooks([]);
+          setTotalMyBooks(0);
+        }
+        console.error(e);
+      } finally {
+        if (!cancelled) setLoadingBooks(false);
+      }
+    }
+    loadMyBooks();
+    return () => {
+      cancelled = true;
+    };
+  }, [storeUser?._id]);
+
   const user = storeUser;
 
   if (loading) return <Skeleton />;
@@ -62,9 +95,12 @@ export default function ProfilePage() {
 
   const initials =
     (user?.firstName?.[0] || "?") + (user?.lastName?.[0] || "");
-  const joined = user?.createdAt
-    ? new Date(user.createdAt).toLocaleDateString()
-    : "—";
+
+  // Snapshot helpers
+  const latestDate =
+    myBooks.length > 0 ? new Date(myBooks[0].createdAt) : null;
+  const nameComplete =
+    Boolean(user?.firstName) && Boolean(user?.lastName);
 
   return (
     <div
@@ -90,9 +126,7 @@ export default function ProfilePage() {
                   {user?.email ?? ""}
                 </p>
 
-                <div className="mt-3 text-sm text-[#1F2421]/60">
-                  Joined: {joined}
-                </div>
+                {/* Removed "Joined" per request */}
 
                 <div className="mt-5">
                   <button
@@ -106,7 +140,7 @@ export default function ProfilePage() {
             </div>
           </PaperCard>
 
-          {/* CTA: Upload books (opens modal; no hardcoded copy besides label) */}
+          {/* CTA: Upload books */}
           <PaperCard className="p-6 flex flex-col justify-between">
             <div>
               <h3 className="text-xl font-semibold font-serif">Share your books</h3>
@@ -125,21 +159,85 @@ export default function ProfilePage() {
           </PaperCard>
         </section>
 
-        {/* Activity (empty state, no hardcoded items) */}
+        {/* Activity (shows user's recent uploads, info-only) */}
         <section className="grid lg:grid-cols-3 gap-6 mt-8">
           <PaperCard className="p-6 lg:col-span-2">
             <h3 className="text-lg font-semibold font-serif">Recent Activity</h3>
-            <EmptyState text="No activity yet." />
+
+            {loadingBooks ? (
+              <div className="mt-4 px-4 py-10 rounded-xl bg-white border border-[#1F2421]/10 text-center text-[#1F2421]/60">
+                Loading…
+              </div>
+            ) : myBooks.length === 0 ? (
+              <EmptyState text="No recent books uploaded." />
+            ) : (
+              <ul className="mt-4 space-y-3">
+                {myBooks.map((b) => (
+                  <li
+                    key={b._id}
+                    className="flex items-center gap-4 p-3 bg-white border border-[#1F2421]/10 rounded-lg"
+                    title={b.title}
+                  >
+                    {b.coverUrl ? (
+                      <img
+                        src={b.coverUrl}
+                        alt={b.title}
+                        className="w-12 h-16 object-cover rounded-md"
+                      />
+                    ) : (
+                      <div className="w-12 h-16 bg-[#E8E4DC] grid place-items-center text-xs text-[#1F2421]/60 rounded-md">
+                        No cover
+                      </div>
+                    )}
+
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium truncate block">
+                        {b.title}
+                      </div>
+                      <div className="text-sm text-[#1F2421]/60 truncate">
+                        {b.author}
+                      </div>
+                      <div className="text-xs text-[#1F2421]/50">
+                        Added: {new Date(b.createdAt).toLocaleDateString()}
+                      </div>
+                    </div>
+
+                    <div className="text-right">
+                      <span className="text-xs px-2 py-1 rounded-full border border-[#1F2421]/15 inline-block">
+                        {b.type === "exchange" ? "Exchange" : "Giveaway"}
+                      </span>
+                      {b.genre ? (
+                        <div className="mt-1 text-[11px] text-[#1F2421]/60">
+                          {b.genre}
+                        </div>
+                      ) : null}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
           </PaperCard>
 
-          {/* Stats (empty state, ready for real data later) */}
+          {/* Replaces "Reading Stats" → Account Snapshot */}
           <PaperCard className="p-6">
-            <h3 className="text-lg font-semibold font-serif">Reading Stats</h3>
-            <div className="mt-4 space-y-2">
-              <StatRow label="Books Borrowed" value="—" />
-              <StatRow label="My Shelf" value="—" />
-              <StatRow label="Favorites" value="—" />
+            <h3 className="text-lg font-semibold font-serif">Account Snapshot</h3>
+            <div className="mt-4 space-y-3">
+              <SnapshotRow
+                label="Accepted uploads"
+                value={String(totalMyBooks)}
+              />
+              <SnapshotRow
+                label="Latest upload"
+                value={
+                  latestDate ? latestDate.toLocaleDateString() : "—"
+                }
+              />
+
             </div>
+            <p className="mt-4 text-xs text-[#1F2421]/50">
+              Tip: Add clear covers and set the correct genre so others can
+              discover your books faster.
+            </p>
           </PaperCard>
         </section>
       </main>
@@ -172,7 +270,7 @@ function PaperCard({ children, className = "" }) {
   );
 }
 
-function StatRow({ label, value }) {
+function SnapshotRow({ label, value }) {
   return (
     <div className="flex items-center justify-between px-3 py-2 rounded-lg bg-white border border-[#1F2421]/10">
       <span className="text-[#1F2421]/70">{label}</span>

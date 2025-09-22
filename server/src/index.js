@@ -12,6 +12,7 @@ import { setupSocket } from "./realtime/socket.js";
 import bookRoutes from "./routes/book.routes.js";
 
 import uploadRoutes from "./routes/upload.routes.js";
+import transactionRoutes from "./routes/transaction.routes.js";
 
 const app = express();
 
@@ -34,11 +35,12 @@ app.get("/api/health", (req, res) => res.json({ ok: true }));
 
 // ---------- Routes ----------
 app.get("/", (req, res) => res.send("API is working"));
+app.use("/api/books", bookRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/ai", aiRoutes);
 app.use("/api", chatRoutes);
-app.use("/api/books", bookRoutes);
 app.use("/api", uploadRoutes);
+app.use("/api/transactions", transactionRoutes);
 
 // ---------- Errors ----------
 app.use(notFound);

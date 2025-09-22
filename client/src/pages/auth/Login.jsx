@@ -1,32 +1,47 @@
-// client/src/pages/auth/Login.jsx
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useDispatch } from "react-redux";
 import { setCredentials } from "../../features/auth/authSlice";
 import { api } from "../../lib/api";
 import { ArrowLeft, Eye, EyeOff } from "lucide-react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { FaArrowLeft } from "react-icons/fa";
+import { renderGoogleButton } from "../../lib/googleAuth";
 
 const LoginPage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
 
-  // If you came from a protected page, React Router appends ?redirect=/that/page
   const redirectParam = new URLSearchParams(location.search).get("redirect");
 
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({ email: "", password: "" });
 
-  const handleGoogleSignin = () => {
-    if (isLoading) return;
-    setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
-      alert("Google login would be initiated here!");
-    }, 800);
-  };
+  const googleBtnRef = useRef(null);
+
+  useEffect(() => {
+    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+    if (!clientId || !googleBtnRef.current) return;
+    renderGoogleButton(clientId, googleBtnRef.current, async (idToken) => {
+      try {
+        setIsLoading(true);
+        const data = await api.post("/auth/google", { idToken });
+        const user = data?.user;
+        const token = data?.token;
+        if (!user || !token) throw new Error("Invalid server response");
+        localStorage.setItem("ptb_token", token);
+        dispatch(setCredentials({ user, token }));
+        const fallback = user.role === "admin" ? "/admin" : "/profile";
+        const target = redirectParam || fallback;
+        navigate(target, { replace: true });
+      } catch (err) {
+        alert(err?.response?.data?.error || err.message || "Google sign-in failed");
+      } finally {
+        setIsLoading(false);
+      }
+    });
+  }, []);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -44,19 +59,14 @@ const LoginPage = () => {
         password: formData.password,
       };
 
-      // login
       const data = await api.post("/auth/login", payload);
       const user = data?.user;
       const token = data?.token;
       if (!user || !token) throw new Error("Invalid server response");
 
-      // persist + store
       localStorage.setItem("ptb_token", token);
       dispatch(setCredentials({ user, token }));
 
-      // ✅ Redirect logic
-      // 1) If ?redirect= exists, honor it (ex: /login?redirect=/admin)
-      // 2) Otherwise: admin -> /admin, normal user -> /profile
       const fallback = user.role === "admin" ? "/admin" : "/profile";
       const target = redirectParam || fallback;
       navigate(target, { replace: true });
@@ -71,7 +81,6 @@ const LoginPage = () => {
     <div className="min-h-screen flex flex-col lg:flex-row bg-[#F3F8F4]">
       {/* Left Section - Hero (Hidden on mobile) */}
       <section className="hidden lg:flex lg:flex-1 relative overflow-hidden">
-        {/* Background image - decorative */}
         <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
           <img
             src="https://images.unsplash.com/photo-1652259432747-2adff09254a6?q=80&w=1200&auto=format&fit=crop&ixlib=rb-4.1.0"
@@ -81,13 +90,11 @@ const LoginPage = () => {
           />
         </div>
 
-        {/* Overlay */}
         <div
           className="absolute inset-0 bg-gradient-to-br from-black/60 via-black/50 to-black/70 pointer-events-none"
           aria-hidden="true"
         />
 
-        {/* Top bar */}
         <div className="absolute top-0 left-0 right-0 p-8 pb-0 z-20">
           <Link
             to="/"
@@ -98,15 +105,12 @@ const LoginPage = () => {
           </Link>
         </div>
 
-        {/* Hero content */}
         <div className="relative z-10 flex items-center justify-center p-8 flex-1">
           <div className="text-center text-white max-w-md">
             <h2 className="text-4xl lg:text-5xl font-bold mb-6 leading-tight">
               Start Reading
             </h2>
-            <p className="text-xl mb-6 text-white/90">
-              Discover thousands of books
-            </p>
+            <p className="text-xl mb-6 text-white/90">Discover thousands of books</p>
             <p className="text-white/75 leading-relaxed">
               Join millions of readers and explore curated collections, get
               personalized recommendations, and track your reading journey.
@@ -117,7 +121,6 @@ const LoginPage = () => {
 
       {/* Right Section - Form */}
       <section className="flex-1 flex flex-col min-h-screen">
-        {/* Mobile header */}
         <div className="lg:hidden p-6 pb-0">
           <Link
             to="/"
@@ -128,20 +131,15 @@ const LoginPage = () => {
           </Link>
         </div>
 
-        {/* Form container */}
         <div className="flex-1 flex items-center justify-center p-6 lg:p-8">
           <div className="w-full max-w-sm">
-            {/* Header */}
             <header className="text-center mb-8">
               <h1 className="text-3xl lg:text-4xl font-bold text-[#1C1C1C] mb-2">
-                Join PassTheBook
+                Welcome Back
               </h1>
-              <p className="text-[#1C1C1C]/70 text-lg">
-                Start your reading adventure
-              </p>
+              <p className="text-[#1C1C1C]/70 text-lg">Access your BookCycle account</p>
             </header>
 
-            {/* Form */}
             <form onSubmit={handleSubmit} className="space-y-5" noValidate>
               {/* Email */}
               <div>
@@ -192,38 +190,11 @@ const LoginPage = () => {
               </div>
 
               {/* Google Sign In */}
-              <button
-                type="button"
-                onClick={handleGoogleSignin}
-                disabled={isLoading}
-                aria-disabled={isLoading}
-                className="w-full flex items-center justify-center gap-3 px-4 py-3.5 bg-white border border-[#1C1C1C]/15 rounded-lg text-[#1C1C1C] hover:bg-[#1C1C1C]/5 hover:border-[#1C1C1C]/25 transition-all disabled:opacity-50 disabled:cursor-not-allowed font-medium"
-              >
-                <svg
-                  className="w-5 h-5"
-                  viewBox="0 0 24 24"
-                  aria-hidden="true"
-                  focusable="false"
-                >
-                  <path
-                    fill="#4285F4"
-                    d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                  />
-                  <path
-                    fill="#34A853"
-                    d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                  />
-                  <path
-                    fill="#FBBC05"
-                    d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                  />
-                  <path
-                    fill="#EA4335"
-                    d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                  />
-                </svg>
-                Continue with Google
-              </button>
+              <div
+                ref={googleBtnRef}
+                className="w-full flex items-center justify-center"
+                aria-label="Continue with Google"
+              />
 
               {/* Divider */}
               <div className="relative my-6">
@@ -253,7 +224,6 @@ const LoginPage = () => {
                 )}
               </button>
 
-              {/* Sign up link */}
               <p className="text-center text-sm text-[#1C1C1C]/70 mt-6">
                 Don't have an account?{" "}
                 <Link
@@ -264,7 +234,6 @@ const LoginPage = () => {
                 </Link>
               </p>
 
-              {/* SR-only status */}
               <div role="status" aria-live="polite" className="sr-only">
                 {isLoading ? "Loading" : "Idle"}
               </div>

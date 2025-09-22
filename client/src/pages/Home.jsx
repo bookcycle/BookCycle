@@ -4,6 +4,7 @@ import BookCarousel from "../components/home/BookCarousel";
 import HowItWorks from "../components/home/HowItWorks";
 import CTASection from "../components/home/CTASection";
 import ChatWidget from "../components/ChatbotWidget";
+import Footer from "../components/Footer";
 
 export default function HomePage() {
   return (
@@ -15,7 +16,7 @@ export default function HomePage() {
 
       <main className="mx-auto max-w-6xl px-4 pb-20">
         <section className="mt-10">
-          <BookCarousel title="New this week" />
+          <BookCarousel title="Recommended" />
         </section>
 
         <section className="mt-14">
@@ -27,8 +28,11 @@ export default function HomePage() {
         </section>
       </main>
 
-      {/* Chatbot is portal-based, no extra wrapper needed */}
-      <ChatWidget btnLabel="Book Genie" />
+      {/* Footer only on Home */}
+      <Footer />
+
+      {/* Floating Chat Widget */}
+           <ChatWidget btnLabel="Book Genie" />
     </div>
   );
 }
