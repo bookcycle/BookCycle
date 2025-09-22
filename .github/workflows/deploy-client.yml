@@ -19,17 +19,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
-          cache: npm
-      - run: npm ci
+          node-version: 20   # or 18/22, just be consistent with your local
+
+      # Install without lockfile requirement
+      - run: npm install
+
       - run: npm run build
-      - run: cp dist/index.html dist/404.html   # SPA fallback
-      - run: touch dist/.nojekyll               # disable Jekyll
+
+      # SPA fallback + disable Jekyll
+      - run: cp dist/index.html dist/404.html
+      - run: touch dist/.nojekyll
+
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
+
   deploy:
     needs: build
     runs-on: ubuntu-latest
