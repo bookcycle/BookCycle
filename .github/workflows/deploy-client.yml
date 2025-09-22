@@ -33,11 +33,12 @@ jobs:
           VITE_GOOGLE_CLIENT_ID: ${{ secrets.VITE_GOOGLE_CLIENT_ID }}
         run: |
           npm run build
-          cp dist/index.html dist/404.html
-          touch dist/.nojekyll
+          cp dist/index.html dist/404.html    # SPA refresh fix
+          touch dist/.nojekyll                # disable Jekyll
       - uses: actions/upload-pages-artifact@v3
         with:
           path: client/dist
+
   deploy:
     needs: build
     runs-on: ubuntu-latest
