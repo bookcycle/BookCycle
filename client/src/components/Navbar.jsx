@@ -1,17 +1,25 @@
 import React, { useState } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
-import { FaUser, FaCompass, FaHome, FaCog, FaBars, FaTimes, FaSignOutAlt } from "react-icons/fa";
+import {
+  FaUser,
+  FaCompass,
+  FaHome,
+  FaCog,
+  FaBars,
+  FaTimes,
+  FaSignOutAlt,
+} from "react-icons/fa";
 import { MdChatBubble } from "react-icons/md";
-import { logout as logoutAction } from "../features/auth/authSlice"; 
+import { GiCycle } from "react-icons/gi"; // ← NEW logo
+import { logout as logoutAction } from "../features/auth/authSlice";
 
 const NAV_ITEMS = [
   { to: "/", label: "Home", icon: FaHome },
   { to: "/explore", label: "Explore", icon: FaCompass },
   { to: "/profile", label: "Profile", icon: FaUser, authOnly: true },
-  { to: "/chat", label: "Chat", icon: MdChatBubble , authOnly: true },
+  { to: "/chat", label: "Chat", icon: MdChatBubble, authOnly: true },
   { to: "/settings", label: "Settings", icon: FaCog, authOnly: true },
-
 ];
 
 export default function Navbar() {
@@ -25,13 +33,19 @@ export default function Navbar() {
   const isAuthed = !!(storeToken || localStorage.getItem("ptb_token"));
 
   const handleLogout = () => {
-    // keep both Redux and localStorage in sync
-    try { dispatch(logoutAction?.()); } catch { }
+    try {
+      dispatch(logoutAction?.());
+    } catch {}
     localStorage.removeItem("ptb_token");
     navigate("/login");
   };
 
-  if (location.pathname === "/login" || location.pathname === "/signup" || location.pathname === "/chat") return null;
+  if (
+    location.pathname === "/login" ||
+    location.pathname === "/signup" ||
+    location.pathname === "/chat"
+  )
+    return null;
 
   const visibleItems = NAV_ITEMS.filter((i) => (i.authOnly ? isAuthed : true));
 
@@ -39,9 +53,10 @@ export default function Navbar() {
     <NavLink
       to={to}
       className={({ isActive }) =>
-        `flex items-center gap-3 px-4 py-3 rounded-md ${isActive
-          ? "bg-[#E0F2F1] text-[#004D40] font-semibold"
-          : "text-gray-800 hover:text-[#00897B] hover:bg-[#F1F8F7]"
+        `flex items-center gap-3 px-4 py-3 rounded-md ${
+          isActive
+            ? "bg-[#E0F2F1] text-[#004D40] font-semibold"
+            : "text-gray-800 hover:text-[#00897B] hover:bg-[#F1F8F7]"
         }`
       }
       end
@@ -58,7 +73,11 @@ export default function Navbar() {
       {/* Mobile Navbar */}
       <header className="xl:hidden sticky top-0 z-40 bg-[#FDFCF9] text-gray-800 border-b border-gray-200">
         <div className="mx-auto max-w-screen-xl px-4 h-14 flex items-center justify-between">
-          <span className="font-semibold tracking-tight text-[#00897B]">BookLink</span>
+          <div className="flex items-center gap-2 text-[#00897B]">
+            <GiCycle size={20} aria-hidden="true" />
+            <span className="font-semibold tracking-tight">BookCycle</span>
+          </div>
+
           <button
             type="button"
             aria-label={open ? "Close menu" : "Open menu"}
@@ -69,7 +88,11 @@ export default function Navbar() {
           </button>
         </div>
 
-        <div className={`overflow-hidden transition-[max-height] duration-300 ${open ? "max-h-96" : "max-h-0"}`}>
+        <div
+          className={`overflow-hidden transition-[max-height] duration-300 ${
+            open ? "max-h-96" : "max-h-0"
+          }`}
+        >
           <nav className="bg-[#FDFCF9] border-t border-gray-200 flex flex-col gap-1 py-2">
             {visibleItems.map(({ to, label, icon: Icon }) => (
               <MobileItem key={to} to={to} label={label} Icon={Icon} />
@@ -77,7 +100,10 @@ export default function Navbar() {
 
             {isAuthed ? (
               <button
-                onClick={() => { handleLogout(); setOpen(false); }}
+                onClick={() => {
+                  handleLogout();
+                  setOpen(false);
+                }}
                 className="flex items-center gap-3 px-4 py-3 rounded-md text-gray-800 hover:text-[#00897B] hover:bg-[#F1F8F7]"
               >
                 <FaSignOutAlt size={18} />
@@ -92,16 +118,21 @@ export default function Navbar() {
 
       {/* Desktop Sidebar */}
       <aside className="hidden xl:flex bg-[#FDFCF9] text-gray-800 min-h-screen w-64 px-6 py-10 sticky top-0 flex-col border-r border-gray-200">
-        <h1 className="text-[#00897B] text-2xl font-bold mb-6 text-center w-full">BookLink</h1>
+        <div className="mb-6 flex items-center justify-center gap-2 text-[#00897B] w-full">
+          <GiCycle size={24} aria-hidden="true" />
+          <span className="text-2xl font-bold">BookCycle</span>
+        </div>
+
         <nav className="flex flex-col gap-2">
           {visibleItems.map(({ to, label, icon: Icon }) => (
             <NavLink
               key={to}
               to={to}
               className={({ isActive }) =>
-                `flex items-center gap-3 rounded-xl px-3 py-2 ${isActive
-                  ? "bg-gradient-to-b from-[#00897B] to-[#004D40] text-white font-semibold shadow-sm"
-                  : "text-gray-800 hover:bg-[#E0F2F1]"
+                `flex items-center gap-3 rounded-xl px-3 py-2 ${
+                  isActive
+                    ? "bg-gradient-to-b from-[#00897B] to-[#004D40] text-white font-semibold shadow-sm"
+                    : "text-gray-800 hover:bg-[#E0F2F1]"
                 }`
               }
               end
@@ -121,7 +152,10 @@ export default function Navbar() {
               <span className="hidden xl:inline">Logout</span>
             </button>
           ) : (
-            <NavLink to="/login" className="flex items-center gap-3 rounded-xl px-3 py-2 text-gray-800 hover:bg-[#E0F2F1]">
+            <NavLink
+              to="/login"
+              className="flex items-center gap-3 rounded-xl px-3 py-2 text-gray-800 hover:bg-[#E0F2F1]"
+            >
               <FaCog size={20} />
               <span className="hidden xl:inline">Login</span>
             </NavLink>
