@@ -1,4 +1,3 @@
-// client/src/components/UploadBookModal.jsx
 import React, { useRef, useState } from "react";
 import { api } from "../lib/api";
 import { FaCloudUploadAlt } from "react-icons/fa";

@@ -11,7 +11,7 @@ import {
   FaSignOutAlt,
 } from "react-icons/fa";
 import { MdChatBubble } from "react-icons/md";
-import { GiCycle } from "react-icons/gi"; // ← NEW logo
+import { GiCycle } from "react-icons/gi"; 
 import { logout as logoutAction } from "../features/auth/authSlice";
 
 const NAV_ITEMS = [
@@ -43,7 +43,8 @@ export default function Navbar() {
   if (
     location.pathname === "/login" ||
     location.pathname === "/signup" ||
-    location.pathname === "/chat"
+    location.pathname === "/chat" ||
+    location.pathname === "/book/:id"
   )
     return null;
 

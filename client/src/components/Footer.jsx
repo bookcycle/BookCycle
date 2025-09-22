@@ -9,7 +9,7 @@ export default function Footer() {
           {/* Brand */}
           <div>
             <h3 className="text-lg font-semibold text-emerald-700">
-              BookLink
+              BookCycle
             </h3>
             <p className="mt-2 text-sm text-slate-600">
               Exchange and give away books in your community.  
