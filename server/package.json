@@ -25,6 +25,7 @@
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.18.0",
+    "serverless-http": "^4.0.0",
     "socket.io": "^4.8.1"
   },
   "devDependencies": {
