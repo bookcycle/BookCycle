@@ -3,8 +3,24 @@ import jwt from "jsonwebtoken";
 import { sendMessage, markConversationRead } from "../services/chat.service.js";
 
 export function setupSocket(server) {
+  // Reuse the same allow-list used by Express CORS
+  const allowed = (process.env.ALLOWED_ORIGINS || "")
+    .split(",")
+    .map(s => s.trim())
+    .filter(Boolean);
+
   const io = new Server(server, {
-    cors: { origin: process.env.CLIENT_URL, credentials: true },
+    cors: {
+      origin(origin, cb) {
+        // same-origin / server-side clients
+        if (!origin) return cb(null, true);
+        if (allowed.includes(origin)) return cb(null, true);
+        return cb(new Error(`Not allowed by CORS (socket): ${origin}`));
+      },
+      credentials: true,
+      methods: ["GET", "POST"],
+      allowedHeaders: ["Content-Type", "Authorization"],
+    },
     // path: "/socket.io",
   });
 

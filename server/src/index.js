@@ -10,25 +10,47 @@ import aiRoutes from "./routes/ai.routes.js";
 import chatRoutes from "./routes/chat.routes.js";
 import { setupSocket } from "./realtime/socket.js";
 import bookRoutes from "./routes/book.routes.js";
-
 import uploadRoutes from "./routes/upload.routes.js";
 import transactionRoutes from "./routes/transaction.routes.js";
 
 const app = express();
 
-// ---------- Middlewares ----------
+// ---------- Security & body parsing ----------
 app.use(helmet());
 app.use(express.json());
 
-// CORS (client 5173)
+// ---------- CORS (safe allow-list via env) ----------
+/**
+ * Set ALLOWED_ORIGINS env like:
+ *   https://bookcycle.github.io,http://localhost:5173
+ * No spaces, no quotes, no trailing slashes.
+ */
+const allowedOrigins = (process.env.ALLOWED_ORIGINS || "")
+  .split(",")
+  .map(s => s.trim())
+  .filter(Boolean);
+
 app.use(
   cors({
-    origin: process.env.CLIENT_URL, 
+    origin(origin, cb) {
+      // allow same-origin & non-browser clients
+      if (!origin) return cb(null, true);
+      if (allowedOrigins.includes(origin)) return cb(null, true);
+      return cb(new Error(`Not allowed by CORS: ${origin}`));
+    },
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
+
+// Optional: transform CORS errors into 403 instead of crashing
+app.use((err, req, res, next) => {
+  if (err?.message?.startsWith("Not allowed by CORS")) {
+    return res.status(403).json({ ok: false, error: err.message });
+  }
+  return next(err);
+});
 
 // ---------- Health (debug) ----------
 app.get("/api/health", (req, res) => res.json({ ok: true }));
@@ -46,9 +68,9 @@ app.use("/api/transactions", transactionRoutes);
 app.use(notFound);
 app.use(errorHandler);
 
-// ---------- Create HTTP server & attach Socket.IO ----------
+// ---------- HTTP server + Socket.IO ----------
 const server = http.createServer(app);
-setupSocket(server); // <<<<<<<<<<<<<<<<<<<<<< attach socket.io to *server*, not app
+setupSocket(server);
 
 // ---------- Start ----------
 await connectDB();
