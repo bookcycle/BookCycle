@@ -9,7 +9,7 @@ import {
   FaBars,
   FaTimes,
   FaSignOutAlt,
-  FaClock, 
+  FaClock,
 } from "react-icons/fa";
 import { MdChatBubble } from "react-icons/md";
 import { GiCycle } from "react-icons/gi";
@@ -20,9 +20,8 @@ const NAV_ITEMS = [
   { to: "/explore", label: "Explore", icon: FaCompass },
   { to: "/profile", label: "Profile", icon: FaUser, authOnly: true },
   { to: "/chat", label: "Chat", icon: MdChatBubble, authOnly: true },
-    { to: "/activity", label: "Activity", icon: FaClock, authOnly: true },
+  { to: "/activity", label: "Activity", icon: FaClock, authOnly: true },
   { to: "/settings", label: "Settings", icon: FaCog, authOnly: true },
-
 ];
 
 export default function Navbar() {
@@ -43,17 +42,12 @@ export default function Navbar() {
     navigate("/login");
   };
 
-  // NOTE: your original check used the literal "/book/:id" which won't match dynamic routes.
-  // If you want this to remain, consider replacing with `location.pathname.startsWith("/book/")`.
-  if (
-    location.pathname === "/login" ||
-    location.pathname === "/signup" ||
-    location.pathname === "/chat" ||
-    location.pathname === "/book/:id"
-  )
-    return null;
+  // routes where we don't render any nav at all
+  if (location.pathname === "/login" || location.pathname === "/signup") return null;
 
   const visibleItems = NAV_ITEMS.filter((i) => (i.authOnly ? isAuthed : true));
+  const isCollapsed =
+    location.pathname.startsWith("/explore") || location.pathname.startsWith("/chat");
 
   const MobileItem = ({ to, label, Icon }) => (
     <NavLink
@@ -76,7 +70,7 @@ export default function Navbar() {
 
   return (
     <>
-      {/* Mobile Navbar */}
+      {/* Mobile Navbar (unchanged) */}
       <header className="xl:hidden sticky top-0 z-40 bg-[#FDFCF9] text-gray-800 border-b border-gray-200">
         <div className="mx-auto max-w-screen-xl px-4 h-14 flex items-center justify-between">
           <div className="flex items-center gap-2 text-[#00897B]">
@@ -123,51 +117,106 @@ export default function Navbar() {
       </header>
 
       {/* Desktop Sidebar */}
-      <aside className="hidden xl:flex bg-[#FDFCF9] text-gray-800 min-h-screen w-64 px-6 py-10 sticky top-0 flex-col border-r border-gray-200">
-        <div className="mb-6 flex items-center justify-center gap-2 text-[#00897B] w-full">
-          <GiCycle size={24} aria-hidden="true" />
-          <span className="text-2xl font-bold">BookCycle</span>
-        </div>
+      {isCollapsed ? (
+        // Collapsed (icons only) sidebar
+        <aside className="hidden xl:flex bg-[#FDFCF9] text-gray-800 min-h-screen w-20 px-3 py-6 sticky top-0 flex-col border-r border-gray-200">
+          {/* Brand */}
+          <div className="mb-6 flex items-center justify-center text-[#00897B]" title="BookCycle">
+            <GiCycle size={26} aria-hidden="true" />
+          </div>
 
-        <nav className="flex flex-col gap-2">
-          {visibleItems.map(({ to, label, icon: Icon }) => (
-            <NavLink
-              key={to}
-              to={to}
-              className={({ isActive }) =>
-                `flex items-center gap-3 rounded-xl px-3 py-2 ${
-                  isActive
-                    ? "bg-gradient-to-b from-[#00897B] to-[#004D40] text-white font-semibold shadow-sm"
-                    : "text-gray-800 hover:bg-[#E0F2F1]"
-                }`
-              }
-              end
-              aria-label={label}
-            >
-              <Icon size={20} className="shrink-0" />
-              <span className="hidden xl:inline">{label}</span>
-            </NavLink>
-          ))}
+          {/* Nav icons */}
+          <nav className="flex flex-col items-center gap-2">
+            {visibleItems.map(({ to, label, icon: Icon }) => (
+              <NavLink
+                key={to}
+                to={to}
+                end
+                aria-label={label}
+                title={label}
+                className={({ isActive }) =>
+                  `flex h-11 w-11 items-center justify-center rounded-xl transition ${
+                    isActive
+                      ? "bg-gradient-to-b from-[#00897B] to-[#004D40] text-white shadow-sm"
+                      : "text-gray-700 hover:bg-[#E0F2F1]"
+                  }`
+                }
+              >
+                <Icon size={20} />
+              </NavLink>
+            ))}
+          </nav>
 
-          {isAuthed ? (
-            <button
-              onClick={handleLogout}
-              className="flex items-center gap-3 rounded-xl px-3 py-2 text-gray-800 hover:bg-[#E0F2F1] transition-colors"
-            >
-              <FaSignOutAlt size={20} />
-              <span className="hidden xl:inline">Logout</span>
-            </button>
-          ) : (
-            <NavLink
-              to="/login"
-              className="flex items-center gap-3 rounded-xl px-3 py-2 text-gray-800 hover:bg-[#E0F2F1]"
-            >
-              <FaCog size={20} />
-              <span className="hidden xl:inline">Login</span>
-            </NavLink>
-          )}
-        </nav>
-      </aside>
+          <div className="mt-auto flex items-center justify-center">
+            {isAuthed ? (
+              <button
+                onClick={handleLogout}
+                aria-label="Logout"
+                title="Logout"
+                className="flex h-11 w-11 items-center justify-center rounded-xl text-gray-700 hover:bg-[#FFEDEC] hover:text-[#9C2B24]"
+              >
+                <FaSignOutAlt size={20} />
+              </button>
+            ) : (
+              <NavLink
+                to="/login"
+                aria-label="Login"
+                title="Login"
+                className="flex h-11 w-11 items-center justify-center rounded-xl text-gray-700 hover:bg-[#E0F2F1]"
+              >
+                <FaCog size={20} />
+              </NavLink>
+            )}
+          </div>
+        </aside>
+      ) : (
+        // Full sidebar
+        <aside className="hidden xl:flex bg-[#FDFCF9] text-gray-800 min-h-screen w-64 px-6 py-10 sticky top-0 flex-col border-r border-gray-200">
+          <div className="mb-6 flex items-center justify-center gap-2 text-[#00897B] w-full">
+            <GiCycle size={24} aria-hidden="true" />
+            <span className="text-2xl font-bold">BookCycle</span>
+          </div>
+
+          <nav className="flex flex-col gap-2">
+            {visibleItems.map(({ to, label, icon: Icon }) => (
+              <NavLink
+                key={to}
+                to={to}
+                className={({ isActive }) =>
+                  `flex items-center gap-3 rounded-xl px-3 py-2 ${
+                    isActive
+                      ? "bg-gradient-to-b from-[#00897B] to-[#004D40] text-white font-semibold shadow-sm"
+                      : "text-gray-800 hover:bg-[#E0F2F1]"
+                  }`
+                }
+                end
+                aria-label={label}
+              >
+                <Icon size={20} className="shrink-0" />
+                <span className="hidden xl:inline">{label}</span>
+              </NavLink>
+            ))}
+
+            {isAuthed ? (
+              <button
+                onClick={handleLogout}
+                className="flex items-center gap-3 rounded-xl px-3 py-2 text-gray-800 hover:bg-[#E0F2F1] transition-colors"
+              >
+                <FaSignOutAlt size={20} />
+                <span className="hidden xl:inline">Logout</span>
+              </button>
+            ) : (
+              <NavLink
+                to="/login"
+                className="flex items-center gap-3 rounded-xl px-3 py-2 text-gray-800 hover:bg-[#E0F2F1]"
+              >
+                <FaCog size={20} />
+                <span className="hidden xl:inline">Login</span>
+              </NavLink>
+            )}
+          </nav>
+        </aside>
+      )}
     </>
   );
 }

@@ -1,4 +1,3 @@
-// client/src/pages/auth/Login.jsx
 import React, { useState, useEffect, useRef } from "react";
 import { useDispatch } from "react-redux";
 import { setCredentials } from "../../features/auth/authSlice";
