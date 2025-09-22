@@ -1,22 +1,49 @@
+// server/src/realtime/socket.js
 import { Server } from "socket.io";
 import jwt from "jsonwebtoken";
 import { sendMessage, markConversationRead } from "../services/chat.service.js";
 
-export function setupSocket(server) {
+/**
+ * Call as: setupSocket(server, { allowedOrigins })
+ * where allowedOrigins is an array of strings (origins)
+ */
+export function setupSocket(server, { allowedOrigins = [] } = {}) {
   const io = new Server(server, {
-    cors: { origin: process.env.CLIENT_URL, credentials: true },
-    // path: "/socket.io",
+    cors: {
+      origin(origin, cb) {
+        // Allow server-to-server / curl (no Origin)
+        if (!origin || allowedOrigins.includes(origin)) return cb(null, true);
+        return cb(new Error(`Socket.IO CORS blocked: ${origin}`));
+      },
+      credentials: true,
+    },
+    transports: ["websocket", "polling"],      // fallback if WS is blocked briefly
+    pingTimeout: 30000,
+    pingInterval: 25000,
   });
 
+  // Optional: useful to debug handshake failures on Render free tier cold starts
+  io.engine.on("connection_error", (err) => {
+    console.warn("Socket engine connection_error:", err?.code, err?.message);
+  });
+
+  // --- Auth guard (expects token in handshake.auth.token OR query ?token=) ---
   io.use((socket, next) => {
     try {
-      const token = socket.handshake.auth?.token;
+      let token =
+        socket.handshake.auth?.token ||
+        socket.handshake.query?.token ||
+        "";
+
+      // Allow "Bearer xxx" or raw token
+      if (token.startsWith("Bearer ")) token = token.slice(7);
+
       if (!token) return next(new Error("No token"));
       const payload = jwt.verify(token, process.env.JWT_SECRET);
       socket.user = { id: payload.id };
-      next();
+      return next();
     } catch (e) {
-      next(new Error("Unauthorized"));
+      return next(new Error("Unauthorized"));
     }
   });
 
@@ -39,9 +66,7 @@ export function setupSocket(server) {
             text,
             attachments,
           });
-          io.to(`conversation:${conversationId}`).emit("message:new", {
-            message: msg,
-          });
+          io.to(`conversation:${conversationId}`).emit("message:new", { message: msg });
           cb?.({ ok: true, message: msg });
         } catch (e) {
           cb?.({ ok: false, error: e.message || "Send failed" });
@@ -61,8 +86,8 @@ export function setupSocket(server) {
       }
     });
 
-    socket.on("disconnect", (r) => {
-      console.log("❌ socket disconnected", r);
+    socket.on("disconnect", (reason) => {
+      console.log("❌ socket disconnected:", reason);
     });
   });
 }
