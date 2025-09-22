@@ -1,8 +1,10 @@
-name: Deploy Vite site to GitHub Pages
+name: Deploy Client to GitHub Pages
 
 on:
   push:
     branches: [ main ]
+    paths:
+      - "client/**"
   workflow_dispatch:
 
 permissions:
@@ -17,26 +19,25 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: client
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-node@v4
         with:
-          node-version: 20   # or 18/22, just be consistent with your local
-
-      # Install without lockfile requirement
-      - run: npm install
-
-      - run: npm run build
-
-      # SPA fallback + disable Jekyll
-      - run: cp dist/index.html dist/404.html
-      - run: touch dist/.nojekyll
-
+          node-version: 20
+      - run: npm ci || npm install
+      - env:
+          VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }}
+          VITE_GOOGLE_CLIENT_ID: ${{ secrets.VITE_GOOGLE_CLIENT_ID }}
+        run: |
+          npm run build
+          cp dist/index.html dist/404.html
+          touch dist/.nojekyll
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: dist
-
+          path: client/dist
   deploy:
     needs: build
     runs-on: ubuntu-latest
