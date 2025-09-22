@@ -10,45 +10,31 @@ import aiRoutes from "./routes/ai.routes.js";
 import chatRoutes from "./routes/chat.routes.js";
 import { setupSocket } from "./realtime/socket.js";
 import bookRoutes from "./routes/book.routes.js";
+
 import uploadRoutes from "./routes/upload.routes.js";
 import transactionRoutes from "./routes/transaction.routes.js";
 
 const app = express();
 
-/** ---------- Security / Core Middlewares ---------- */
-app.set("trust proxy", 1);
+// ---------- Middlewares ----------
 app.use(helmet());
 app.use(express.json());
 
-/** ---------- CORS ---------- */
-const allowedOrigins = [
-  process.env.CLIENT_URL,                 
-  "https://jnkarim.github.io",
-  "http://localhost:5173",
-  process.env.SERVER_URL                  
-].filter(Boolean);
-
+// CORS (client 5173)
 app.use(
   cors({
-    origin(origin, cb) {
-      // allow server-to-server, curl, health checks with no Origin
-      if (!origin || allowedOrigins.includes(origin)) return cb(null, true);
-      return cb(new Error(`CORS blocked for origin: ${origin}`));
-    },
+    origin: process.env.CLIENT_URL, 
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
-// Fast path for preflight
-app.options("*", cors());
+// ---------- Health (debug) ----------
+app.get("/api/health", (req, res) => res.json({ ok: true }));
 
-/** ---------- Health ---------- */
-app.get("/api/health", (_req, res) => res.json({ ok: true }));
-
-/** ---------- Routes ---------- */
-app.get("/", (_req, res) => res.send("API is working"));
+// ---------- Routes ----------
+app.get("/", (req, res) => res.send("API is working"));
 app.use("/api/books", bookRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/ai", aiRoutes);
@@ -56,20 +42,16 @@ app.use("/api", chatRoutes);
 app.use("/api", uploadRoutes);
 app.use("/api/transactions", transactionRoutes);
 
-/** ---------- Errors ---------- */
+// ---------- Errors ----------
 app.use(notFound);
 app.use(errorHandler);
 
-/** ---------- HTTP + Socket.IO ---------- */
+// ---------- Create HTTP server & attach Socket.IO ----------
 const server = http.createServer(app);
+setupSocket(server); // <<<<<<<<<<<<<<<<<<<<<< attach socket.io to *server*, not app
 
-// Pass the same CORS list into your socket setup
-setupSocket(server, { allowedOrigins });
-
-/** ---------- Start ---------- */
+// ---------- Start ----------
 await connectDB();
-
 server.listen(config.port, () => {
-  const host = process.env.RENDER_EXTERNAL_URL || process.env.SERVER_URL || `http://localhost:${config.port}`;
-  console.log(`🚀 Server running at ${host}`);
+  console.log(`🚀 Server running at http://localhost:${config.port}`);
 });

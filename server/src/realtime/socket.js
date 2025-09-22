@@ -2,43 +2,21 @@ import { Server } from "socket.io";
 import jwt from "jsonwebtoken";
 import { sendMessage, markConversationRead } from "../services/chat.service.js";
 
-
-export function setupSocket(server, { allowedOrigins = [] } = {}) {
+export function setupSocket(server) {
   const io = new Server(server, {
-    cors: {
-      origin(origin, cb) {
-        if (!origin || allowedOrigins.includes(origin)) return cb(null, true);
-        return cb(new Error(`Socket.IO CORS blocked: ${origin}`));
-      },
-      credentials: true,
-    },
-    transports: ["websocket", "polling"],   
-    pingTimeout: 30000,
-    pingInterval: 25000,
+    cors: { origin: process.env.CLIENT_URL, credentials: true },
+    // path: "/socket.io",
   });
 
-  // Optional: useful to debug handshake failures on Render free tier cold starts
-  io.engine.on("connection_error", (err) => {
-    console.warn("Socket engine connection_error:", err?.code, err?.message);
-  });
-
-  // --- Auth guard (expects token in handshake.auth.token OR query ?token=) ---
   io.use((socket, next) => {
     try {
-      let token =
-        socket.handshake.auth?.token ||
-        socket.handshake.query?.token ||
-        "";
-
-      // Allow "Bearer xxx" or raw token
-      if (token.startsWith("Bearer ")) token = token.slice(7);
-
+      const token = socket.handshake.auth?.token;
       if (!token) return next(new Error("No token"));
       const payload = jwt.verify(token, process.env.JWT_SECRET);
       socket.user = { id: payload.id };
-      return next();
+      next();
     } catch (e) {
-      return next(new Error("Unauthorized"));
+      next(new Error("Unauthorized"));
     }
   });
 
@@ -61,7 +39,9 @@ export function setupSocket(server, { allowedOrigins = [] } = {}) {
             text,
             attachments,
           });
-          io.to(`conversation:${conversationId}`).emit("message:new", { message: msg });
+          io.to(`conversation:${conversationId}`).emit("message:new", {
+            message: msg,
+          });
           cb?.({ ok: true, message: msg });
         } catch (e) {
           cb?.({ ok: false, error: e.message || "Send failed" });
@@ -81,8 +61,8 @@ export function setupSocket(server, { allowedOrigins = [] } = {}) {
       }
     });
 
-    socket.on("disconnect", (reason) => {
-      console.log("❌ socket disconnected:", reason);
+    socket.on("disconnect", (r) => {
+      console.log("❌ socket disconnected", r);
     });
   });
 }
