@@ -27,7 +27,6 @@ function RoutedApp() {
 
   const isAdminRoute = pathname === "/admin" || pathname.startsWith("/admin/");
 
-  // 🚀 auto redirect if role is admin
   useEffect(() => {
     if (user?.role === "admin" && !isAdminRoute) {
       navigate("/admin", { replace: true });
