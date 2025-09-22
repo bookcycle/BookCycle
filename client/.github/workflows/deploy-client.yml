@@ -1,7 +1,8 @@
 name: Deploy Client to GitHub Pages
+
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
     paths:
       - "client/**"
   workflow_dispatch:
@@ -24,16 +25,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with: { node-version: "20" }
+        with:
+          node-version: "20"
       - name: Install
         run: npm ci
       - name: Build
-        run: |
-          npm run build
-          cp dist/index.html dist/404.html   # SPA refresh fix
         env:
+          # Optional: comment these out if you don't need envs at build
           VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }}
           VITE_GOOGLE_CLIENT_ID: ${{ secrets.VITE_GOOGLE_CLIENT_ID }}
+        run: |
+          npm run build
+          cp dist/index.html dist/404.html  # SPA refresh fix
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
