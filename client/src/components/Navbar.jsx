@@ -9,9 +9,10 @@ import {
   FaBars,
   FaTimes,
   FaSignOutAlt,
+  FaClock, 
 } from "react-icons/fa";
 import { MdChatBubble } from "react-icons/md";
-import { GiCycle } from "react-icons/gi"; 
+import { GiCycle } from "react-icons/gi";
 import { logout as logoutAction } from "../features/auth/authSlice";
 
 const NAV_ITEMS = [
@@ -19,7 +20,9 @@ const NAV_ITEMS = [
   { to: "/explore", label: "Explore", icon: FaCompass },
   { to: "/profile", label: "Profile", icon: FaUser, authOnly: true },
   { to: "/chat", label: "Chat", icon: MdChatBubble, authOnly: true },
+    { to: "/activity", label: "Activity", icon: FaClock, authOnly: true },
   { to: "/settings", label: "Settings", icon: FaCog, authOnly: true },
+
 ];
 
 export default function Navbar() {
@@ -40,6 +43,8 @@ export default function Navbar() {
     navigate("/login");
   };
 
+  // NOTE: your original check used the literal "/book/:id" which won't match dynamic routes.
+  // If you want this to remain, consider replacing with `location.pathname.startsWith("/book/")`.
   if (
     location.pathname === "/login" ||
     location.pathname === "/signup" ||
@@ -101,7 +106,10 @@ export default function Navbar() {
 
             {isAuthed ? (
               <button
-                onClick={() => { handleLogout(); setOpen(false); }}
+                onClick={() => {
+                  handleLogout();
+                  setOpen(false);
+                }}
                 className="flex items-center gap-3 px-4 py-3 rounded-md text-gray-800 hover:text-[#00897B] hover:bg-[#F1F8F7]"
               >
                 <FaSignOutAlt size={18} />

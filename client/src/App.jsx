@@ -10,7 +10,8 @@ import Settings from "./pages/Settings";
 import Login from "./pages/auth/Login";
 import Signup from "./pages/auth/Signup";
 import ChatPage from "./pages/Chat";
-import BookDetails from "./pages/BookDetails"; 
+import BookDetails from "./pages/BookDetails";
+import Activity from "./pages/Activity";
 
 // Admin
 import AdminRoute from "./routes/AdminRoute";
@@ -49,7 +50,7 @@ function RoutedApp() {
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/chat" element={<ChatPage />} />
-
+          <Route path="/activity" element={<Activity />} />
 
           {/* Admin routes */}
           <Route
@@ -60,7 +61,7 @@ function RoutedApp() {
               </AdminRoute>
             }
           >
-            <Route index element={<PendingBooks/>} />
+            <Route index element={<PendingBooks />} />
             <Route path="pending" element={<PendingBooks />} />
             <Route path="rejected" element={<RejectedBooks />} />
           </Route>
