@@ -100,10 +100,7 @@ export default function Navbar() {
 
             {isAuthed ? (
               <button
-                onClick={() => {
-                  handleLogout();
-                  setOpen(false);
-                }}
+                onClick={() => { handleLogout(); setOpen(false); }}
                 className="flex items-center gap-3 px-4 py-3 rounded-md text-gray-800 hover:text-[#00897B] hover:bg-[#F1F8F7]"
               >
                 <FaSignOutAlt size={18} />

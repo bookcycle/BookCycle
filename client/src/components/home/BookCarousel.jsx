@@ -19,18 +19,23 @@ export default function BookCarousel({ title = "Recommended" }) {
   const nextRef = useRef(null);
 
   useEffect(() => {
+    let mounted = true;
     (async () => {
       try {
         setLoading(true);
-        const data = await api.get("/books", { params: { page: 1, limit: 20 } });
-        setRows(Array.isArray(data?.docs) ? data.docs : []);
         setErr("");
+        // ✅ Public endpoint: always returns accepted books
+        const data = await api.get("/books", { params: { page: 1, limit: 20 } });
+        if (!mounted) return;
+        setRows(Array.isArray(data?.docs) ? data.docs : []);
       } catch (e) {
+        if (!mounted) return;
         setErr(e?.message || "Failed to load books");
       } finally {
-        setLoading(false);
+        if (mounted) setLoading(false);
       }
     })();
+    return () => { mounted = false; };
   }, []);
 
   return (
