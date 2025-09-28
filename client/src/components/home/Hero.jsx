@@ -41,14 +41,14 @@ export default function Hero() {
                                 <h1 className="mt-3 font-serif text-4xl font-bold leading-[1.05] tracking-tight text-white sm:text-6xl">
                                     Trade{" "}
                                     <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-300 via-teal-300 to-cyan-300">
-                                        stories
+                                        books
                                     </span>
                                     ,<br className="hidden sm:block" />
                                     grow{" "}
                                     <span className="underline decoration-emerald-400/70 decoration-wavy underline-offset-4">
                                         together
                                     </span>
-                                    .
+                                    !
                                 </h1>
 
                                 <p className="mt-5 max-w-xl text-[17px] leading-relaxed text-slate-300">
