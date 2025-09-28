@@ -34,8 +34,8 @@ A community-first platform for exchanging and giving away books. Keep great stor
 ### Requests & Transactions
 - Request an exchange or claim a giveaway
 - In-app chat to coordinate handoff
-- Status flow: `open → pending → confirmed → fulfilled/cancelled`
-- Optional **QR handoff**: scan to mark fulfilled
+- Status flow: `open → pending → confirmed`
+- Show previous transactions
 
 ### AI Search — Book Genie
 - Smart recommendations (similar authors/genres)
