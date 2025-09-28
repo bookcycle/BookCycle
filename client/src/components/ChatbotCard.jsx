@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { api } from "../lib/api"; 
+import { api } from "../lib/api";
 
 export default function ChatbotCard() {
   const [messages, setMessages] = useState([
@@ -21,8 +21,7 @@ export default function ChatbotCard() {
   useAutoGrow(textareaRef, draft);
   useScrollToBottom(listRef, [messages, busy]);
 
-  async function handleSend(e) {
-    e.preventDefault();
+  async function sendMessage() {
     const text = draft.trim();
     if (!text || busy) return;
 
@@ -60,6 +59,19 @@ export default function ChatbotCard() {
     }
   }
 
+  async function handleSubmit(e) {
+    e.preventDefault();
+    await sendMessage();
+  }
+
+  function handleKeyDown(e) {
+    // Enter to send, Shift+Enter for newline
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  }
+
   return (
     <div
       className="rounded-2xl border border-neutral-200 bg-white shadow-lg overflow-hidden"
@@ -75,13 +87,14 @@ export default function ChatbotCard() {
       </div>
 
       {/* composer */}
-      <form onSubmit={handleSend} className="border-t border-neutral-200 p-2">
+      <form onSubmit={handleSubmit} className="border-t border-neutral-200 p-2">
         <div className="flex items-end gap-2 rounded-xl border border-neutral-200 bg-white px-2 py-1.5 focus-within:ring-2 focus-within:ring-neutral-900/10">
           <textarea
             ref={textareaRef}
             rows={1}
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
+            onKeyDown={handleKeyDown}
             placeholder='Try: "Find cozy mysteries under 300 pages"'
             className="flex-1 resize-none bg-transparent outline-none px-2 py-2 text-[15px] leading-relaxed"
             aria-label="Message Book Genie"
@@ -94,9 +107,7 @@ export default function ChatbotCard() {
             {busy ? "…" : "Send"}
           </button>
         </div>
-        <p className="mt-1 text-[11px] text-neutral-500">
-          Connected to: <code>/api/ai/chat</code>
-        </p>
+        {/* Removed the "Connected to: /api/ai/chat" line */}
       </form>
     </div>
   );
@@ -117,7 +128,6 @@ function Bubble({ role, content }) {
         {isUser ? (
           content
         ) : (
-          // Assistant messages render with Markdown → bullets, bold, tables (GFM) nicely
           <div className="prose prose-sm max-w-none prose-p:my-2 prose-ul:my-2 prose-li:my-1 prose-ol:my-2">
             <ReactMarkdown remarkPlugins={[remarkGfm]}>
               {content}
@@ -163,6 +173,5 @@ function useScrollToBottom(ref, deps) {
     const el = ref.current;
     if (!el) return;
     el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, deps);
 }
