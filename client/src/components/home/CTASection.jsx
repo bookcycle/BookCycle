@@ -1,12 +1,11 @@
-// CTASection.jsx — Solid dark split CTA (supports modal or route)
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { BookPlus, Recycle } from "lucide-react";
 
 export default function CTASection({
-  onUpload,                    // optional: () => void  (e.g., () => setOpenUpload(true))
-  uploadRoute = "/add-book",   // default upload page
-  learnRoute = "/how-it-works" // default learn page (or "#how-it-works" for same-page section)
+  onUpload,                    
+  uploadRoute = "/profile",     
+  learnRoute = "/how-it-works", 
 }) {
   const nav = useNavigate();
 
@@ -16,7 +15,6 @@ export default function CTASection({
   };
 
   const handleLearn = () => {
-    // Support in-page hash scroll (e.g., "#how-it-works")
     if (learnRoute.startsWith("#")) {
       const el = document.querySelector(learnRoute);
       if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -78,11 +76,10 @@ export default function CTASection({
                   <BookPlus className="h-4 w-4" />
                   Upload a Book
                 </button>
-
               </div>
 
               <p className="mt-3 text-xs text-slate-400">
-                No fees • Community-moderated • ~2 min to list
+                No fees • Community-moderated 
               </p>
             </div>
           </div>

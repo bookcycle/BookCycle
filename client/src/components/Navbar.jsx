@@ -10,6 +10,7 @@ import {
   FaTimes,
   FaSignOutAlt,
   FaClock,
+  FaSignInAlt,
 } from "react-icons/fa";
 import { MdChatBubble } from "react-icons/md";
 import { GiCycle } from "react-icons/gi";
@@ -92,7 +93,7 @@ export default function Navbar() {
             <span className="font-semibold tracking-tight">BookCycle</span>
           </div>
 
-          <button
+        <button
             type="button"
             aria-label={open ? "Close menu" : "Open menu"}
             onClick={() => setOpen((v) => !v)}
@@ -107,7 +108,7 @@ export default function Navbar() {
             open ? "max-h-96" : "max-h-0"
           }`}
         >
-          <nav className="bg-[#FDFCF9] border-t border-gray-200 flex flex-col gap-1 py-2">
+          <nav className="bg[#FDFCF9] border-t border-gray-200 flex flex-col gap-1 py-2">
             {visibleItems.map(({ to, label, icon: Icon }) => (
               <MobileItem
                 key={to}
@@ -132,7 +133,13 @@ export default function Navbar() {
                 {!isCompact && <span className="text-sm">Logout</span>}
               </button>
             ) : (
-              <MobileItem to="/login" label="Login" Icon={FaCog} compact={isCompact} />
+              /* CHANGED ICON HERE */
+              <MobileItem
+                to="/login"
+                label="Login"
+                Icon={FaSignInAlt}
+                compact={isCompact}
+              />
             )}
           </nav>
         </div>
@@ -195,7 +202,8 @@ export default function Navbar() {
               aria-label="Login"
               title="Login"
             >
-              <FaCog size={20} />
+              {/* CHANGED ICON HERE */}
+              <FaSignInAlt size={20} />
               {!isCompact && <span className="hidden xl:inline">Login</span>}
             </NavLink>
           )}
