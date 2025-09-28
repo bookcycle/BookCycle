@@ -107,13 +107,17 @@ export async function changePassword(req, res, next) {
   }
 }
 
-// NEW: Google OAuth endpoint
+
 export async function googleAuth(req, res, next) {
   try {
-    const { idToken } = req.body;
+    // accept either shape from the client
+    const idToken = req.body?.id_token || req.body?.idToken;
+    if (!idToken) return res.status(400).json({ error: "Missing idToken" });
+
     const result = await loginWithGoogle({ idToken });
     return res.status(200).json(result); // { user, token }
   } catch (err) {
     next(err);
   }
 }
+
