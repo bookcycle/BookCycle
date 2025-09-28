@@ -1,4 +1,3 @@
-// client/src/pages/auth/Login.jsx
 import React, { useState, useEffect, useRef } from "react";
 import { useDispatch } from "react-redux";
 import { setCredentials } from "../../features/auth/authSlice";
@@ -21,18 +20,24 @@ const LoginPage = () => {
 
   const googleBtnRef = useRef(null);
 
+  // Render Google button and handle credential response
   useEffect(() => {
-    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-    if (!clientId || !googleBtnRef.current) return;
-    renderGoogleButton(clientId, googleBtnRef.current, async (idToken) => {
+    const el = googleBtnRef.current;
+    if (!el) return;
+
+    renderGoogleButton(el, async (credential) => {
       try {
         setIsLoading(true);
-        const data = await api.post("/auth/google", { idToken });
+        // IMPORTANT: send as { id_token } for server verification
+        const { data } = await api.post("/auth/google", { id_token: credential });
+
         const user = data?.user;
         const token = data?.token;
         if (!user || !token) throw new Error("Invalid server response");
+
         localStorage.setItem("ptb_token", token);
         dispatch(setCredentials({ user, token }));
+
         const fallback = user.role === "admin" ? "/admin" : "/profile";
         const target = redirectParam || fallback;
         navigate(target, { replace: true });
@@ -42,7 +47,7 @@ const LoginPage = () => {
         setIsLoading(false);
       }
     });
-  }, []);
+  }, [dispatch, navigate, redirectParam]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -60,7 +65,7 @@ const LoginPage = () => {
         password: formData.password,
       };
 
-      const data = await api.post("/auth/login", payload);
+      const { data } = await api.post("/auth/login", payload);
       const user = data?.user;
       const token = data?.token;
       if (!user || !token) throw new Error("Invalid server response");
@@ -194,6 +199,7 @@ const LoginPage = () => {
               <div
                 ref={googleBtnRef}
                 className="w-full flex items-center justify-center"
+                style={{ minHeight: 44 }}
                 aria-label="Continue with Google"
               />
 

@@ -28,16 +28,21 @@ export default function SignupPage() {
 
   const googleBtnRef = useRef(null);
 
+  // Render Google button (uses env VITE_GOOGLE_CLIENT_ID inside helper)
   useEffect(() => {
-    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-    if (!clientId || !googleBtnRef.current) return;
-    renderGoogleButton(clientId, googleBtnRef.current, async (idToken) => {
+    const el = googleBtnRef.current;
+    if (!el) return;
+
+    renderGoogleButton(el, async (credential) => {
       try {
         setIsLoading(true);
-        const data = await api.post("/auth/google", { idToken });
+        // IMPORTANT: send as { id_token } so server can verify against GOOGLE_CLIENT_ID
+        const { data } = await api.post("/auth/google", { id_token: credential });
+
         const user = data?.user;
         const token = data?.token;
         if (!user || !token) throw new Error("Invalid server response");
+
         localStorage.setItem("ptb_token", token);
         dispatch(setCredentials({ user, token }));
         navigate(redirectTo, { replace: true });
@@ -47,7 +52,7 @@ export default function SignupPage() {
         setIsLoading(false);
       }
     });
-  }, []);
+  }, [dispatch, navigate, redirectTo]);
 
   const onChange = (e) => {
     const { name, type, checked, value } = e.target;
@@ -83,7 +88,7 @@ export default function SignupPage() {
         password: formData.password,
       };
 
-      const data = await api.post("/auth/signup", payload);
+      const { data } = await api.post("/auth/signup", payload);
       const user = data?.user;
       const token = data?.token;
       if (!user || !token) throw new Error("Invalid server response");
@@ -92,7 +97,7 @@ export default function SignupPage() {
       dispatch(setCredentials({ user, token }));
       navigate(redirectTo, { replace: true });
     } catch (err) {
-      alert(err.message || "Signup failed");
+      alert(err?.response?.data?.error || err.message || "Signup failed");
     } finally {
       setIsLoading(false);
     }
@@ -105,7 +110,7 @@ export default function SignupPage() {
         {/* Top bar */}
         <div className="flex items-center justify-between p-8 pb-0">
           <Link
-            to="/home"
+            to="/"
             className="text-sm inline-flex items-center gap-2 text-[#1C1C1C] hover:opacity-80"
           >
             <FaArrowLeft className="h-3.5 w-3.5" />
@@ -125,9 +130,7 @@ export default function SignupPage() {
               {/* Name */}
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <label htmlFor="firstName" className="sr-only">
-                    First name
-                  </label>
+                  <label htmlFor="firstName" className="sr-only">First name</label>
                   <input
                     id="firstName"
                     name="firstName"
@@ -140,9 +143,7 @@ export default function SignupPage() {
                   />
                 </div>
                 <div className="space-y-1">
-                  <label htmlFor="lastName" className="sr-only">
-                    Last name
-                  </label>
+                  <label htmlFor="lastName" className="sr-only">Last name</label>
                   <input
                     id="lastName"
                     name="lastName"
@@ -158,9 +159,7 @@ export default function SignupPage() {
 
               {/* Email */}
               <div className="space-y-1">
-                <label htmlFor="email" className="sr-only">
-                  Email
-                </label>
+                <label htmlFor="email" className="sr-only">Email</label>
                 <input
                   id="email"
                   name="email"
@@ -176,9 +175,7 @@ export default function SignupPage() {
 
               {/* Password */}
               <div className="space-y-1">
-                <label htmlFor="password" className="sr-only">
-                  Password
-                </label>
+                <label htmlFor="password" className="sr-only">Password</label>
                 <div className="relative">
                   <input
                     id="password"
@@ -205,9 +202,7 @@ export default function SignupPage() {
 
               {/* Confirm Password */}
               <div className="space-y-1">
-                <label htmlFor="confirmPassword" className="sr-only">
-                  Confirm password
-                </label>
+                <label htmlFor="confirmPassword" className="sr-only">Confirm password</label>
                 <div className="relative">
                   <input
                     id="confirmPassword"
@@ -244,13 +239,9 @@ export default function SignupPage() {
                 />
                 <span className="text-sm text-[#1C1C1C] leading-relaxed">
                   I agree to the{" "}
-                  <button type="button" className="underline hover:opacity-80">
-                    Terms
-                  </button>{" "}
+                  <button type="button" className="underline hover:opacity-80">Terms</button>{" "}
                   and{" "}
-                  <button type="button" className="underline hover:opacity-80">
-                    Privacy Policy
-                  </button>
+                  <button type="button" className="underline hover:opacity-80">Privacy Policy</button>
                 </span>
               </label>
 
@@ -258,6 +249,7 @@ export default function SignupPage() {
               <div
                 ref={googleBtnRef}
                 className="w-full flex items-center justify-center"
+                style={{ minHeight: 44 }}
                 aria-label="Continue with Google"
               />
 
