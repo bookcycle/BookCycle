@@ -1,7 +1,9 @@
+// server/app.js
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 
+// Routes (in src/)
 import authRoutes from "./src/routes/auth.routes.js";
 import aiRoutes from "./src/routes/ai.routes.js";
 import chatRoutes from "./src/routes/chat.routes.js";
@@ -9,25 +11,40 @@ import bookRoutes from "./src/routes/book.routes.js";
 import uploadRoutes from "./src/routes/upload.routes.js";
 import transactionRoutes from "./src/routes/transaction.routes.js";
 
+// Middlewares (in src/)
 import { notFound, errorHandler } from "./src/middlewares/error.js";
 
 const app = express();
 
-// middleware
+/* ---------- Security & parsing ---------- */
 app.use(helmet());
 app.use(express.json());
+
+/* ---------- CORS (allow exact origins only) ---------- */
+const allow = new Set([
+  "https://book-cycle-cxry.vercel.app", // production client
+  "http://localhost:5173",              // local dev client
+]);
+
 app.use(
   cors({
-    origin: process.env.CLIENT_URL,
+    origin: (origin, cb) => {
+      // allow server-to-server/SSR/tools (no origin header)
+      if (!origin) return cb(null, true);
+      const clean = origin.replace(/\/+$/, ""); // strip trailing slashes
+      return allow.has(clean) ? cb(null, true) : cb(new Error("CORS"));
+    },
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
-// health + routes
-app.get("/api/health", (req, res) => res.json({ ok: true }));
-app.get("/", (req, res) => res.send("API is working"));
+/* ---------- Health ---------- */
+app.get("/api/health", (_req, res) => res.json({ ok: true }));
+app.get("/", (_req, res) => res.send("API is working"));
+
+/* ---------- Routes ---------- */
 app.use("/api/books", bookRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/ai", aiRoutes);
@@ -35,7 +52,7 @@ app.use("/api", chatRoutes);
 app.use("/api", uploadRoutes);
 app.use("/api/transactions", transactionRoutes);
 
-// errors
+/* ---------- Errors ---------- */
 app.use(notFound);
 app.use(errorHandler);
 
