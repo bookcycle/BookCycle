@@ -36,7 +36,6 @@ function RoutedApp() {
 
   return (
     <div className={isAdminRoute ? "min-h-screen" : "min-h-screen xl:flex"}>
-      {/* Hide global navbar on admin pages */}
       {!isAdminRoute && <Navbar />}
 
       <main className="flex-1">
