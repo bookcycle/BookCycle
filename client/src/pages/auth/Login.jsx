@@ -7,7 +7,7 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { FaArrowLeft } from "react-icons/fa";
 import { renderGoogleButton } from "../../lib/googleAuth";
 
-const LoginPage = () => {
+export default function LoginPage() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
@@ -20,33 +20,41 @@ const LoginPage = () => {
 
   const googleBtnRef = useRef(null);
 
-  // Render Google button and handle credential response
+  // Render Google button & handle credential
   useEffect(() => {
     const el = googleBtnRef.current;
     if (!el) return;
 
-    renderGoogleButton(el, async (credential) => {
-      try {
-        setIsLoading(true);
-        // IMPORTANT: send as { id_token } for server verification
-        const { data } = await api.post("/auth/google", { id_token: credential });
+    let cleanup = () => {};
+    (async () => {
+      cleanup = await renderGoogleButton(el, async (credential) => {
+        try {
+          setIsLoading(true);
 
-        const user = data?.user;
-        const token = data?.token;
-        if (!user || !token) throw new Error("Invalid server response");
+          // Send as { id_token } (snake_case) for server verification
+          const res = await api.post("/auth/google", { id_token: credential });
 
-        localStorage.setItem("ptb_token", token);
-        dispatch(setCredentials({ user, token }));
+          // Accept either { user, token } or { data: { user, token } }
+          const { user, token } = res?.user ? res : (res?.data || {});
+          if (!user || !token) throw new Error("Invalid server response");
 
-        const fallback = user.role === "admin" ? "/admin" : "/profile";
-        const target = redirectParam || fallback;
-        navigate(target, { replace: true });
-      } catch (err) {
-        alert(err?.response?.data?.error || err.message || "Google sign-in failed");
-      } finally {
-        setIsLoading(false);
-      }
-    });
+          localStorage.setItem("ptb_token", token);
+          dispatch(setCredentials({ user, token }));
+
+          const fallback = user.role === "admin" ? "/admin" : "/profile";
+          navigate(redirectParam || fallback, { replace: true });
+        } catch (err) {
+          alert(err?.response?.data?.error || err.message || "Google sign-in failed");
+        } finally {
+          setIsLoading(false);
+        }
+      });
+    })();
+
+    // optional cleanup (hides One Tap, etc., if your helper provides it)
+    return () => {
+      try { cleanup?.(); } catch {}
+    };
   }, [dispatch, navigate, redirectParam]);
 
   const handleInputChange = (e) => {
@@ -65,17 +73,15 @@ const LoginPage = () => {
         password: formData.password,
       };
 
-      const { data } = await api.post("/auth/login", payload);
-      const user = data?.user;
-      const token = data?.token;
+      const res = await api.post("/auth/login", payload);
+      const { user, token } = res?.user ? res : (res?.data || {});
       if (!user || !token) throw new Error("Invalid server response");
 
       localStorage.setItem("ptb_token", token);
       dispatch(setCredentials({ user, token }));
 
       const fallback = user.role === "admin" ? "/admin" : "/profile";
-      const target = redirectParam || fallback;
-      navigate(target, { replace: true });
+      navigate(redirectParam || fallback, { replace: true });
     } catch (err) {
       alert(err?.response?.data?.error || err.message || "Login failed");
     } finally {
@@ -232,7 +238,7 @@ const LoginPage = () => {
               </button>
 
               <p className="text-center text-sm text-[#1C1C1C]/70 mt-6">
-                Don't have an account?{" "}
+                Don&apos;t have an account?{" "}
                 <Link
                   to="/signup"
                   className="text-[#1C1C1C] font-semibold underline hover:opacity-80 transition-opacity"
@@ -250,6 +256,4 @@ const LoginPage = () => {
       </section>
     </div>
   );
-};
-
-export default LoginPage;
+}

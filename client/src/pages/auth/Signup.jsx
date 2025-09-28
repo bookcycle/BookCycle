@@ -28,30 +28,38 @@ export default function SignupPage() {
 
   const googleBtnRef = useRef(null);
 
-  // Render Google button (uses env VITE_GOOGLE_CLIENT_ID inside helper)
+  // Render Google button (helper reads VITE_GOOGLE_CLIENT_ID)
   useEffect(() => {
     const el = googleBtnRef.current;
     if (!el) return;
 
-    renderGoogleButton(el, async (credential) => {
-      try {
-        setIsLoading(true);
-        // IMPORTANT: send as { id_token } so server can verify against GOOGLE_CLIENT_ID
-        const { data } = await api.post("/auth/google", { id_token: credential });
+    let cleanup = () => {};
+    (async () => {
+      cleanup = await renderGoogleButton(el, async (credential) => {
+        try {
+          setIsLoading(true);
 
-        const user = data?.user;
-        const token = data?.token;
-        if (!user || !token) throw new Error("Invalid server response");
+          // Send as { id_token } so the server verifies against GOOGLE_CLIENT_ID
+          const res = await api.post("/auth/google", { id_token: credential });
 
-        localStorage.setItem("ptb_token", token);
-        dispatch(setCredentials({ user, token }));
-        navigate(redirectTo, { replace: true });
-      } catch (err) {
-        alert(err?.response?.data?.error || err.message || "Google sign-up failed");
-      } finally {
-        setIsLoading(false);
-      }
-    });
+          // Accept either { user, token } or { data: { user, token } }
+          const { user, token } = res?.user ? res : (res?.data || {});
+          if (!user || !token) throw new Error("Invalid server response");
+
+          localStorage.setItem("ptb_token", token);
+          dispatch(setCredentials({ user, token }));
+          navigate(redirectTo, { replace: true });
+        } catch (err) {
+          alert(err?.response?.data?.error || err.message || "Google sign-up failed");
+        } finally {
+          setIsLoading(false);
+        }
+      });
+    })();
+
+    return () => {
+      try { cleanup?.(); } catch {}
+    };
   }, [dispatch, navigate, redirectTo]);
 
   const onChange = (e) => {
@@ -88,9 +96,8 @@ export default function SignupPage() {
         password: formData.password,
       };
 
-      const { data } = await api.post("/auth/signup", payload);
-      const user = data?.user;
-      const token = data?.token;
+      const res = await api.post("/auth/signup", payload);
+      const { user, token } = res?.user ? res : (res?.data || {});
       if (!user || !token) throw new Error("Invalid server response");
 
       localStorage.setItem("ptb_token", token);
