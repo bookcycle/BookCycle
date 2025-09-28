@@ -2,7 +2,8 @@ import { User } from "../models/User.js";
 import { signAuthToken } from "./token.service.js";
 import { OAuth2Client } from "google-auth-library";
 
-const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+const GOOGLE_CLIENT_ID = (process.env.GOOGLE_CLIENT_ID || "").trim();
+const googleClient = new OAuth2Client(GOOGLE_CLIENT_ID);
 
 export async function registerUser({ firstName, lastName, email, password }) {
   const exists = await User.findOne({ email });
@@ -35,7 +36,7 @@ export async function loginUser({ email, password }) {
   return { user: sanitize(user), token };
 }
 
-/*fetching profile data */
+/* fetching profile data */
 export async function getUserById(id) {
   const user = await User.findById(id);
   if (!user) {
@@ -46,7 +47,7 @@ export async function getUserById(id) {
   return sanitize(user);
 }
 
-// NEW: Google sign-in/up using Google ID token
+// Google sign-in/up using Google ID token
 export async function loginWithGoogle({ idToken }) {
   if (!idToken) {
     const err = new Error("Missing idToken");
@@ -56,9 +57,10 @@ export async function loginWithGoogle({ idToken }) {
 
   const ticket = await googleClient.verifyIdToken({
     idToken,
-    audience: process.env.GOOGLE_CLIENT_ID,
+    audience: GOOGLE_CLIENT_ID, // must match VITE_GOOGLE_CLIENT_ID exactly
   });
-  const payload = ticket.getPayload(); // email, sub, name, picture, email_verified
+
+  const payload = ticket.getPayload(); // { email, sub, name, picture, email_verified, ... }
   const email = (payload.email || "").toLowerCase();
 
   if (!payload.email_verified) {
@@ -70,7 +72,8 @@ export async function loginWithGoogle({ idToken }) {
   let user = await User.findOne({ email });
 
   if (!user) {
-    const firstName = payload.given_name || (payload.name || "").split(" ")[0] || "Google";
+    const firstName =
+      payload.given_name || (payload.name || "").split(" ")[0] || "Google";
     const lastName =
       payload.family_name ||
       (payload.name || "").split(" ").slice(1).join(" ") ||
