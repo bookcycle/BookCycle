@@ -48,7 +48,7 @@ export default function AdminLayout() {
                             </div>
                             <div>
                                 <div className="text-white font-bold text-xl tracking-tight">
-                                    PassTheBook
+                                   BookCycle
                                 </div>
                                 <div className="text-slate-400 text-xs font-medium">
                                     Admin Console
