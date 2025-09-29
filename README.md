@@ -93,4 +93,4 @@ A community-first platform for exchanging and giving away books. Keep great stor
 
 ## Live Project
 
-- **App:** https://book-cycle-cxry.vercel.app/
+- **Website:** https://book-cycle-cxry.vercel.app/
