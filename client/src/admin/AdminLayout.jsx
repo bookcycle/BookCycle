@@ -1,6 +1,6 @@
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { BookOpen, XCircle, User, LogOut } from "lucide-react";
+import { LayoutDashboard, BookOpen, XCircle, User, LogOut } from "lucide-react";
 import { logout } from "../features/auth/authSlice";
 
 const linkBase =
@@ -48,7 +48,7 @@ export default function AdminLayout() {
                             </div>
                             <div>
                                 <div className="text-white font-bold text-xl tracking-tight">
-                                    Book
+                                    PassTheBook
                                 </div>
                                 <div className="text-slate-400 text-xs font-medium">
                                     Admin Console
