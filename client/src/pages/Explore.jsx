@@ -159,7 +159,7 @@ export default function Explore() {
                   onKeyDown={(e) => {
                     if (e.key === "Enter") fetchBooks({ reset: true });
                   }}
-                  placeholder="Search by title, author, or ISBN… (press / to focus)"
+                  placeholder="Search by title"
                   className="w-full rounded-2xl border border-[#E8E4DC] bg-white/80 px-12 py-4 text-[#1F2421] shadow-sm outline-none transition-all focus:ring-4 focus:ring-[#B8B09C]/30 backdrop-blur-sm"
                 />
                 <button
@@ -339,7 +339,7 @@ function Chip({ label, active, onClick }) {
       className={`px-4 py-2 text-sm rounded-xl border transition-all ${
         active
           ? "border-[#D9D1BC] bg-[#E7E1CF] text-[#1F2421] shadow"
-          : "border-[#E8E4DC] bg-[#EFEBDD] text-[#1F2421]/90 hover:bg-white"
+          : "border-[#E8E4DC] bg-[#EFEBDD] text-[#1F2421]/90 hover:bg.white"
       }`}
     >
       {label}
@@ -354,7 +354,7 @@ function BookCard({ book, onOpen }) {
   return (
     <article
       onClick={onOpen}
-      className="group relative flex h-full cursor-pointer flex-col overflow-hidden rounded-2xl border border-[#E8E4DC] bg-[#FCFBF9] shadow-[0_2px_10px_rgba(31,36,33,0.05)] transition-transform hover:-translate-y-0.5"
+      className="group relative flex h.full cursor-pointer flex-col overflow-hidden rounded-2xl border border-[#E8E4DC] bg-[#FCFBF9] shadow-[0_2px_10px_rgba(31,36,33,0.05)] transition-transform hover:-translate-y-0.5"
       title={`${book?.title || "Untitled"} — ${book?.author || "Unknown"}`}
     >
       {/* cover */}
@@ -386,10 +386,7 @@ function BookCard({ book, onOpen }) {
       <div className="flex flex-1 flex-col p-3">
         <div className="truncate font-medium text-[#1F2421]">{book?.title || "Untitled"}</div>
         <div className="truncate text-sm text-[#1F2421]/70">{book?.author || "Unknown author"}</div>
-
-        <div className="mt-auto pt-2 text-xs text-[#1F2421]/60">
-          {book?.location ? <span>{book.location}</span> : <span className="italic">Location unknown</span>}
-        </div>
+        {/* Removed location display */}
       </div>
 
       {/* gradient hover edge */}
@@ -426,7 +423,7 @@ function BookRow({ book, onOpen }) {
             <Star className="h-3 w-3 fill-current" /> {ratingText}
           </span>
           {book?.genre && <span className="rounded bg-[#EFEBDD] px-2 py-0.5">{book.genre}</span>}
-          {book?.location && <span>{book.location}</span>}
+          {/* Removed location pill */}
         </div>
       </div>
       <div>
@@ -487,6 +484,7 @@ function CardSkeletonGrid({ view }) {
   );
 }
 
+/* ------------------------------ Utils ------------------------------ */
 
 function useDebounced(value, delay = 300) {
   const [v, setV] = useState(value);
