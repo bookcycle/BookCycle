@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { BrowserRouter, Routes, Route, useLocation, useNavigate } from "react-router-dom";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
 import Navbar from "./components/Navbar";
 import Home from "./pages/Home";
@@ -18,21 +18,36 @@ import AdminRoute from "./routes/AdminRoute";
 import AdminLayout from "./admin/AdminLayout";
 import PendingBooks from "./admin/PendingBooks";
 import RejectedBooks from "./admin/RejectedBooks";
-import Dashboard from "./admin/Dashboard";
+
+import { bootstrapAuth } from "./features/auth/authSlice";
 
 function RoutedApp() {
   const { pathname } = useLocation();
   const navigate = useNavigate();
-  const { user } = useSelector((s) => s.auth);
+  const dispatch = useDispatch();
 
+  const { user, status } = useSelector((s) => s.auth);
   const isAdminRoute = pathname === "/admin" || pathname.startsWith("/admin/");
 
-  // 🚀 auto redirect if role is admin
   useEffect(() => {
-    if (user?.role === "admin" && !isAdminRoute) {
+    if (status === "bootstrapping") {
+      dispatch(bootstrapAuth());
+    }
+  }, [status, dispatch]);
+
+  if (status === "bootstrapping") {
+    return (
+      <div className="min-h-screen grid place-items-center text-slate-400">
+        Loading…
+      </div>
+    );
+  }
+
+  useEffect(() => {
+    if (status === "authenticated" && user?.role === "admin" && !isAdminRoute) {
       navigate("/admin", { replace: true });
     }
-  }, [user, isAdminRoute, navigate]);
+  }, [status, user, isAdminRoute, navigate]);
 
   return (
     <div className={isAdminRoute ? "min-h-screen" : "min-h-screen xl:flex"}>
@@ -64,7 +79,6 @@ function RoutedApp() {
             <Route path="pending" element={<PendingBooks />} />
             <Route path="rejected" element={<RejectedBooks />} />
           </Route>
-
         </Routes>
       </main>
     </div>

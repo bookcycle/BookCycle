@@ -1,59 +1,111 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { Navigate, useLocation } from "react-router-dom";
 import { api } from "../lib/api";
 import { setCredentials } from "../features/auth/authSlice";
+
+function parseMe(res) {
+    const d = res?.data ?? res;
+
+    if (d?.user) return d.user;
+
+    if (d && typeof d === "object" && (d._id || d.id || d.email)) return d;
+
+    if (d?.data?.user) return d.data.user;
+
+    if (d?.data && (d.data._id || d.data.id || d.data.email)) return d.data;
+
+    return null;
+}
 
 export default function AdminRoute({ children }) {
     const dispatch = useDispatch();
     const { user, token } = useSelector((s) => s.auth);
     const loc = useLocation();
 
-    // token can live in Redux (fresh login) or localStorage (after refresh)
     const savedToken = token || localStorage.getItem("ptb_token");
 
-    // if we have a token but no user yet, hydrate once
-    const [checking, setChecking] = useState(Boolean(savedToken && !user));
+    const needsHydrate = useMemo(
+        () => Boolean(savedToken && (!user || !user.role)),
+        [savedToken, user]
+    );
+
+    const [checking, setChecking] = useState(needsHydrate);
+    const [failed, setFailed] = useState(false);
 
     useEffect(() => {
         let cancelled = false;
 
         async function hydrate() {
-            if (!savedToken || user) return;
+            if (!needsHydrate) return;
+
+            setChecking(true);
+            setFailed(false);
+
             try {
-                const data = await api.get("/auth/me");
-                const me = data?.user;
+                const res = await api.get("/auth/me", {
+                    headers: {
+                        Authorization: `Bearer ${savedToken}`,
+                    },
+                });
+
+                const me = parseMe(res);
                 if (!cancelled && me) {
                     dispatch(setCredentials({ user: me, token: savedToken }));
                 }
-            } catch (_err) {
+                if (!cancelled) setChecking(false);
+            } catch (err) {
                 if (!cancelled) {
-                    // bad/expired token → drop it so we can redirect to login cleanly
+                    setChecking(false);
+                    setFailed(true);
                     localStorage.removeItem("ptb_token");
                 }
-            } finally {
-                if (!cancelled) setChecking(false);
             }
         }
 
         hydrate();
-        return () => { cancelled = true; };
-    }, [dispatch, savedToken, user]);
+        return () => {
+            cancelled = true;
+        };
+    }, [dispatch, needsHydrate, savedToken]);
+
+    // Build full redirect back target (path + query + hash)
+    const back = encodeURIComponent(
+        `${loc.pathname}${loc.search || ""}${loc.hash || ""}`
+    );
 
 
     if (!savedToken && !user) {
-        return <Navigate to={`/login?redirect=${encodeURIComponent(loc.pathname)}`} replace />;
+        return <Navigate to={`/login?redirect=${back}`} replace />;
     }
+
 
     if (checking) {
-        return <div className="p-4 text-sm text-gray-600">Signing you in…</div>;
+        return (
+            <div className="min-h-[50vh] grid place-items-center text-slate-500 text-sm">
+                Verifying your session…
+            </div>
+        );
     }
 
 
-    if (user && user.role !== "admin") {
-        return <Navigate to="/" replace />;
+    if (!user) {
+        return <Navigate to={`/login?redirect=${back}`} replace />;
     }
 
+
+    if (user.role !== "admin") {
+        return (
+            <div className="min-h-[50vh] grid place-items-center">
+                <div className="p-6 rounded-xl border border-slate-200 bg-white shadow">
+                    <div className="text-lg font-semibold text-slate-800">403 — Forbidden</div>
+                    <p className="mt-1 text-sm text-slate-600">
+                        You’re signed in but don’t have admin permissions.
+                    </p>
+                </div>
+            </div>
+        );
+    }
 
     return children;
 }
